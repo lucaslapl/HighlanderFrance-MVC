@@ -108,6 +108,9 @@ leaderboard **en temps réel**, au lieu d'attendre le CRON.
   `update_index_stats.php` (mêmes services que le panel admin).
 - Anti-concurrence : verrou `flock` sur `_scripts/webhook_match.lock` (réponse
   202 si une mise à jour est déjà en cours).
+- Réponse JSON (HTTP 200) : `{ success, message, processed_logs, details }`,
+  où `processed_logs` est le nombre de nouveaux logs traités par
+  `update_stats.php` (le plugin l'affiche en console serveur).
 
 Les CRON des 3 scripts liés aux matchs passent en filet de sécurité (toutes les
 3 h) dans `deploy/crontab.txt`.
