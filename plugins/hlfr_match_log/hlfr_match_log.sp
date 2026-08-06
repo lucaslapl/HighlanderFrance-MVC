@@ -2,9 +2,13 @@
 #pragma newdecls required
 
 #include <sourcemod>
+
+// REST in Pawn (ripext) est requis et auto-chargé : SourceMod définit déjà
+// AUTOLOAD_EXTENSIONS/REQUIRE_EXTENSIONS par défaut, si l'extension est
+// absente le plugin refuse de se charger (erreur visible dans sm plugins list).
 #include <ripext>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.0"
 
 public Plugin myinfo =
 {
@@ -161,6 +165,7 @@ void SendWebhook()
 	if (url[0] == '\0' || token[0] == '\0')
 	{
 		LogError("[HLFR] Webhook non envoyé : hlfr_webhook_url ou hlfr_webhook_token vide.");
+		PrintToServer("[HLFR] Webhook non envoyé : hlfr_webhook_url ou hlfr_webhook_token vide.");
 		g_WebhookPending = false;
 		return;
 	}
@@ -195,16 +200,39 @@ void Callback_Webhook(HTTPResponse response, int value)
 		return;
 	}
 
+	// Hints de diagnostic pour les codes fréquents.
+	if (status == 0)
+	{
+		PrintToServer("[HLFR] Webhook impossible : serveur injoignable ou erreur TLS (HTTP 0). Vérifiez que le site est accessible depuis ce serveur.");
+	}
+	else if (status == 403)
+	{
+		PrintToServer("[HLFR] Webhook refusé (HTTP 403) : token incorrect ou IP non autorisée.");
+	}
+	else if (status == 404)
+	{
+		PrintToServer("[HLFR] Webhook refusé (HTTP 404) : mauvaise URL hlfr_webhook_url.");
+	}
+	else if (status >= 500)
+	{
+		PrintToServer("[HLFR] Webhook refusé (HTTP %d) : erreur côté site, sera réessayé.", status);
+	}
+	else
+	{
+		PrintToServer("[HLFR] Webhook refusé (HTTP %d).", status);
+	}
+
 	g_RetriesLeft--;
 
 	if (g_RetriesLeft > 0)
 	{
 		float backoff = GetConVarFloat(g_hDelay) + float(GetConVarInt(g_hMaxRetries) - g_RetriesLeft) * 30.0;
-		PrintToServer("[HLFR] Webhook refusé (HTTP %d). Nouvel essai dans %.0f s (%d restant%s).", status, backoff, g_RetriesLeft, g_RetriesLeft > 1 ? "s" : "");
+		PrintToServer("[HLFR] Nouvel essai dans %.0f s (%d restant%s).", backoff, g_RetriesLeft, g_RetriesLeft > 1 ? "s" : "");
 		CreateTimer(backoff, Timer_Retry, _, TIMER_FLAG_NO_MAPCHANGE);
 		return;
 	}
 
 	LogError("[HLFR] Webhook de fin de match définitivement refusé (HTTP %d).", status);
+	PrintToServer("[HLFR] Webhook de fin de match définitivement refusé (HTTP %d).", status);
 	g_WebhookPending = false;
 }

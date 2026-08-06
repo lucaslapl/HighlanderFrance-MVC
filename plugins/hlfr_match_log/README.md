@@ -61,10 +61,18 @@ cfg/sourcemod/hlfr_match_log.cfg               ← configuration
 
 ## Tests
 
-- `sm_hlfr_sync` (admin) : déclenche un webhook immédiatement, sans attendre la
-  fin d'un match. Pratique pour vérifier la chaîne bout en bout.
-- Vérifier la console serveur :
-  `[HLFR] Webhook de fin de match accepté (HTTP 200).`
+- `sm exts list` : vérifier que **REST in Pawn** est chargé (le plugin refuse de
+  se charger sinon).
+- `sm_hlfr_sync` (admin) : déclenche un webhook **immédiatement**, sans attendre
+  la fin d'un match (la détection automatique n'est pas nécessaire pour tester).
+- Messages dans la console serveur :
+  - `[HLFR] Webhook de fin de match accepté (HTTP 200).` → tout fonctionne.
+  - `[HLFR] Webhook impossible : serveur injoignable ou erreur TLS (HTTP 0).`
+    → le site est inaccessible depuis le serveur de jeu (URL, DNS, firewall).
+  - `[HLFR] Webhook refusé (HTTP 403) : token incorrect ou IP non autorisée.`
+  - `[HLFR] Webhook refusé (HTTP 404) : mauvaise URL hlfr_webhook_url.`
+  - `[HLFR] Webhook refusé (HTTP 500...)` → erreur côté site (voir
+    `_scripts/cron_debug.log`).
 
 ## Robustesse
 
