@@ -14,14 +14,16 @@
 # ponctuelles) : les lancer à la main via bin/ ou le panel admin
 # (/admin/run-cron-manual).
 
-# Statistiques des matchs joueurs — le plus fréquent (traitement des nouveaux logs).
-*/15 * * * * <APP_ROOT>/bin/update_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+# Statistiques des matchs joueurs — déclenchés en temps réel par le webhook
+# de fin de match (plugin hlfr_match_log). Le CRON ci-dessous ne sert plus
+# que de filet de sécurité (toutes les 3 h) si un webhook est manqué.
+0 */3 * * * <APP_ROOT>/bin/update_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
 
-# Stats de la page d'accueil.
-*/15 * * * * <APP_ROOT>/bin/update_index_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+# Stats de la page d'accueil (filet de sécurité).
+0 */3 * * * <APP_ROOT>/bin/update_index_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
 
-# Caches JSON du classement (leaderboard).
-*/15 * * * * <APP_ROOT>/bin/generate_json.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+# Caches JSON du classement (leaderboard) (filet de sécurité).
+0 */3 * * * <APP_ROOT>/bin/generate_json.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
 
 # Agenda des matchs ETF2L français.
 */30 * * * * <APP_ROOT>/bin/sync_etf2l.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
