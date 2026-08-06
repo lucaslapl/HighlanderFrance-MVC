@@ -8,7 +8,7 @@
 // absente le plugin refuse de se charger (erreur visible dans sm plugins list).
 #include <ripext>
 
-#define PLUGIN_VERSION "1.1.0"
+#define PLUGIN_VERSION "1.2.0"
 
 public Plugin myinfo =
 {
@@ -194,8 +194,38 @@ void Callback_Webhook(HTTPResponse response, int value)
 
 	if (status >= 200 && status <= 299)
 	{
-		PrintToServer("[HLFR] Webhook de fin de match accepté (HTTP %d).", status);
-		LogMessage("Webhook fin de match envoyé avec succès (HTTP %d).", status);
+		int processed = -1;
+		char contentType[64];
+		if (response.GetHeader("Content-Type", contentType, sizeof(contentType))
+			&& StrContains(contentType, "json") != -1)
+		{
+			JSON data = response.Data;
+			if (data != null)
+			{
+				JSONObject obj = view_as<JSONObject>(data);
+				if (obj.HasKey("processed_logs"))
+				{
+					processed = obj.GetInt("processed_logs");
+				}
+			}
+		}
+
+		if (processed == 1)
+		{
+			PrintToServer("[HLFR] Webhook de fin de match accepté (HTTP %d) - 1 nouveau log traité.", status);
+			LogMessage("Webhook fin de match envoyé avec succès (HTTP %d) - 1 nouveau log traité.", status);
+		}
+		else if (processed >= 0)
+		{
+			PrintToServer("[HLFR] Webhook de fin de match accepté (HTTP %d) - %d nouveaux logs traités.", status, processed);
+			LogMessage("Webhook fin de match envoyé avec succès (HTTP %d) - %d nouveaux logs traités.", status, processed);
+		}
+		else
+		{
+			PrintToServer("[HLFR] Webhook de fin de match accepté (HTTP %d).", status);
+			LogMessage("Webhook fin de match envoyé avec succès (HTTP %d).", status);
+		}
+
 		g_WebhookPending = false;
 		return;
 	}

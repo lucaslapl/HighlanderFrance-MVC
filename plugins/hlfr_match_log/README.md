@@ -66,7 +66,13 @@ cfg/sourcemod/hlfr_match_log.cfg               ← configuration
 - `sm_hlfr_sync` (admin) : déclenche un webhook **immédiatement**, sans attendre
   la fin d'un match (la détection automatique n'est pas nécessaire pour tester).
 - Messages dans la console serveur :
-  - `[HLFR] Webhook de fin de match accepté (HTTP 200).` → tout fonctionne.
+  - `[HLFR] Webhook de fin de match accepté (HTTP 200) - 1 nouveau log traité.`
+    → tout fonctionne ; le log du match a bien été trouvé et traité par le site
+    (le nombre vient de la réponse du site).
+  - `[HLFR] Webhook de fin de match accepté (HTTP 200) - 0 nouveaux logs traités.`
+    → webhook OK mais le log n'a pas encore été trouvé sur logs.tf : le titre du
+    log ne contient pas « Highlander France » / « highlanderfrance.tf »
+    (vérifier `tftrue_logs_name_prefix`), ou l'upload TFTrue est en retard.
   - `[HLFR] Webhook impossible : serveur injoignable ou erreur TLS (HTTP 0).`
     → le site est inaccessible depuis le serveur de jeu (URL, DNS, firewall).
   - `[HLFR] Webhook refusé (HTTP 403) : token incorrect ou IP non autorisée.`

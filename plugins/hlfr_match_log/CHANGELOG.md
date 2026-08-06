@@ -1,5 +1,13 @@
 # Changelog — HLFR Match Log Webhook
 
+## 1.2.0 — 2026-08-06
+
+- Le site renvoie désormais le **nombre de nouveaux logs traités** dans la
+  réponse du webhook (`processed_logs`). Le plugin l'affiche en console :
+  `[HLFR] Webhook de fin de match accepté (HTTP 200) - 1 nouveau log traité.`
+  (ou `N nouveaux logs traités`). 0 = le log du match n'a pas encore été trouvé
+  sur logs.tf (titre ne correspondant pas, ou upload TFTrue plus lent).
+
 ## 1.1.0 — 2026-08-06
 
 - Ajout de messages de diagnostic dans la console serveur selon le code HTTP :
