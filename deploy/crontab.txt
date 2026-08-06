@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CRONTAB — Highlander France (architecture MVC)
+# ─────────────────────────────────────────────────────────────────────────────
+# À installer sur le serveur de production :
+#   crontab deploy/crontab.txt
+#
+# ⚠️ Adapter les chemins : <APP_ROOT> = chemin absolu vers highlander-france-mvc
+#    (ex : /var/www/highlander-france-mvc)
+# ⚠️ Utiliser le binaire PHP du serveur (php8.3, php8.2… selon la config).
+# ⚠️ Les scripts bin/*.php s'exécutent en CLI, auditent dans _scripts/cron_debug.log
+#    et écrivent leurs caches dans _scripts/.
+#
+# Les backfills/migrations sont volontairement non programmés (opérations
+# ponctuelles) : les lancer à la main via bin/ ou le panel admin
+# (/admin/run-cron-manual).
+
+# Statistiques des matchs joueurs — le plus fréquent (traitement des nouveaux logs).
+*/15 * * * * <APP_ROOT>/bin/update_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+
+# Stats de la page d'accueil.
+*/15 * * * * <APP_ROOT>/bin/update_index_stats.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+
+# Caches JSON du classement (leaderboard).
+*/15 * * * * <APP_ROOT>/bin/generate_json.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+
+# Agenda des matchs ETF2L français.
+*/30 * * * * <APP_ROOT>/bin/sync_etf2l.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+
+# Import des profils Steam manquants.
+0 * * * * <APP_ROOT>/bin/sync_steam.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1
+
+# Réparation des profils Steam cassés (avatars/pseudos vides).
+0 */6 * * * <APP_ROOT>/bin/sync_steam_avatars.php >> <APP_ROOT>/_scripts/cron_caller.log 2>&1

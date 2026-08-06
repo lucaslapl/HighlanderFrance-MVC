@@ -1,0 +1,5 @@
+config/.env
+_cache/
+_sessions/
+_scripts/*
+!_scripts/.htaccess

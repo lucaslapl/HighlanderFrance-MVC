@@ -1,0 +1,13 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Interdiction d'accès aux dossiers internes
+    RewriteRule ^(?:app|config|bin|_cache|_sessions|_scripts)(?:/|$) - [F,L,NC]
+
+    # Front controller : tout ce qui n'est pas un fichier ou dossier réel
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>

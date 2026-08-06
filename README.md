@@ -1,0 +1,96 @@
+# Highlander France — Architecture MVC
+
+Refonte de l'ancien site PHP procédural vers une **architecture MVC maison**
+(sans framework, PSR-4 maison, aucun Composer).
+
+- **Dossier** : `highlander-france-mvc`
+- **Base de données** : SQLite dans `_scripts/stats.db` (propre à l'application)
+- **PHP requis** : 8.2+ (extensions `pdo_sqlite`, `curl`, `bcmath`)
+
+## Structure
+
+```
+bin/                          Scripts CRON exécutables en CLI
+config/
+  app.php                     Constantes globales (DATA_DIR, DB_PATH, COUNTRIES…)
+  autoload.php                Autoloader PSR-4 + helpers e() / partial()
+  routes.php                  Toutes les routes de l'application
+  .env                        Clés sensibles (HORS versionnement)
+deploy/
+  crontab.txt                 CRONTAB de production (à adapter puis installer)
+app/
+  Core/                       Router, Request, Response, Controller, View, Database
+  Controllers/                PageController, AuthController, ProfileController,
+                              Admin/AdminController, Admin/ApiController, ErrorController
+  Models/                     Repositories (accès BDD)
+  Services/                   Auth, SteamApi, SteamId, JsonClient, LogParser,
+                              AdminLogger, ApiStatus, Crons/*
+  Views/                      layouts/, pages/, partials/, errors/
+_scripts/                     Données : base SQLite, caches JSON, logs CRON
+                              (protégé par .htaccess, non versionné)
+```
+
+## Installation / Configuration
+
+1. Copier `config/.env.example` → `config/.env` (ou créer le fichier) et renseigner :
+
+   ```ini
+   STEAM_API_KEY=<clé Steam API>
+   APP_URL=http://localhost:8080
+   # DB_PATH=…  (défaut : _scripts/stats.db)
+   CURL_VERIFY_SSL=0           # 1 en production
+   ```
+
+2. Le vhost doit pointer vers le dossier racine du projet (le `.htaccess` fait
+   office de front controller et bloque l'accès à `app/`, `config/`, `bin/`,
+   `_cache/`, `_sessions/`, `_scripts/`).
+
+## CRON
+
+Les scripts s'exécutent en CLI :
+
+```bash
+php bin/update_stats.php            # Stats des matchs joueurs (logs.tf)
+php bin/update_index_stats.php      # Stats de la page d'accueil
+php bin/sync_etf2l.php              # Agenda des matchs ETF2L FR
+php bin/sync_steam.php              # Import des profils Steam manquants
+php bin/sync_steam_avatars.php      # Réparation des profils Steam cassés
+php bin/generate_json.php           # Caches JSON du classement (leaderboard)
+php bin/backfill_log_dates.php      # Backfill des dates de matchs
+php bin/migrate_player_match_stats.php
+php bin/backfill_player_match_stats.php
+php bin/backfill_match_teams.php
+```
+
+Chaque exécution est auditée dans `_scripts/cron_debug.log` (statut
+STARTED → SUCCESS / FAILED) et consultable dans le panel admin
+(`/admin/run-cron-manual`, `/admin/view-logs`).
+
+**Crontab de production** : adapter `deploy/crontab.txt` (chemins + binaire PHP)
+puis installer avec `crontab deploy/crontab.txt`. Les backfills/migrations sont
+volontairement non programmés (opérations ponctuelles à lancer à la main).
+
+## Routes principales
+
+| Méthode | URI | Contrôleur |
+|---|---|---|
+| GET | `/` | PageController::home |
+| GET | `/staff` | PageController::staff |
+| GET | `/hall-of-fame` | PageController::hallOfFame |
+| GET | `/match-logs` | PageController::matchLogs |
+| GET | `/log/match-log?id=` | PageController::matchLog (détail d'un match) |
+| GET | `/confidentialite` | PageController::privacy |
+| GET | `/login`, `/auth/callback`, `/logout` | AuthController |
+| GET | `/profile/profil`, `/profile/dashboard` | ProfileController |
+| GET | `/api/index-stats`, `/api/logs`, `/api/leaderboard`, `/api/search-players`, `/api/profile-stats` | API |
+| GET/POST | `/admin/*` | AdminController (admin requis) |
+| POST | `/api/admin/*` | Admin/ApiController (admin requis) |
+
+## Notes
+
+- L'application est **autonome** : base SQLite, caches et logs CRON vivent dans
+  `_scripts/` (protégé par `.htaccess`, exclu du versionnement via `.gitignore`).
+- Secrets (`config/.env`, `_cache/`, `_sessions/`, `_scripts/`) exclus du
+  versionnement.
+- L'ancien site (`highlander-france`) est retiré : pointez le vhost de
+  production vers ce dossier.
