@@ -1,5 +1,11 @@
 # Highlander France — Architecture MVC
 
+> **Projet de démonstration** — publié à titre de portfolio. Tous droits
+> réservés, aucune réutilisation autorisée. Voir [LICENSE](LICENSE).
+
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=fff)
+![Licence](https://img.shields.io/badge/Licence-Tous%20droits%20r%C3%A9serv%C3%A9s-blue)
+
 Refonte de l'ancien site PHP procédural vers une **architecture MVC maison**
 (sans framework, PSR-4 maison, aucun Composer).
 
@@ -41,8 +47,8 @@ _scripts/                     Données : base SQLite, caches JSON, logs CRON
    CURL_VERIFY_SSL=0           # 1 en production
    ```
 
-2. Le vhost doit pointer vers le dossier racine du projet (le `.htaccess` fait
-   office de front controller et bloque l'accès à `app/`, `config/`, `bin/`,
+2. Le vhost doit pointer vers la racine du projet (le `.htaccess` fait office
+   de front controller et bloque l'accès à `app/`, `config/`, `bin/`,
    `_cache/`, `_sessions/`, `_scripts/`).
 
 ## CRON
@@ -78,10 +84,10 @@ volontairement non programmés (opérations ponctuelles à lancer à la main).
 | GET | `/staff` | PageController::staff |
 | GET | `/hall-of-fame` | PageController::hallOfFame |
 | GET | `/match-logs` | PageController::matchLogs |
-| GET | `/log/match-log?id=` | PageController::matchLog (détail d'un match) |
+| GET | `/log/{id}` | PageController::matchLog (détail d'un match) |
 | GET | `/confidentialite` | PageController::privacy |
 | GET | `/login`, `/auth/callback`, `/logout` | AuthController |
-| GET | `/profile/profil`, `/profile/dashboard` | ProfileController |
+| GET | `/profile/{steamid}` | ProfileController::profil |
 | GET | `/api/index-stats`, `/api/logs`, `/api/leaderboard`, `/api/search-players`, `/api/profile-stats` | API |
 | GET/POST | `/admin/*` | AdminController (admin requis) |
 | POST | `/api/admin/*` | Admin/ApiController (admin requis) |
@@ -94,3 +100,8 @@ volontairement non programmés (opérations ponctuelles à lancer à la main).
   versionnement.
 - L'ancien site (`highlander-france`) est retiré : pointez le vhost de
   production vers ce dossier.
+
+## Licence
+
+Ce projet est mis à disposition **uniquement à des fins de consultation**
+(portfolio). Tous droits réservés — voir le fichier [LICENSE](LICENSE).
