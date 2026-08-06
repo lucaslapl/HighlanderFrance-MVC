@@ -72,6 +72,7 @@ final class ServerHookController extends Controller
             $this->json([
                 'success' => true,
                 'message' => 'Mise à jour déclenchée par webhook (' . $server . ').',
+                'processed_logs' => $this->extractProcessedLogs($updateStats),
                 'details' => [$updateStats, $generateJson, $indexStats],
             ]);
         } catch (\Throwable $e) {
@@ -121,6 +122,20 @@ final class ServerHookController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Extrait le nombre de nouveaux logs traités du message renvoyé par
+     * UpdateStatsService, pour l'exposer au plugin SourceMod (option A).
+     * Renvoie -1 si le message ne peut pas être interprété.
+     */
+    private function extractProcessedLogs(string $message): int
+    {
+        if (preg_match('/Nouveaux logs traités\s*:\s*(\d+)/i', $message, $m) === 1) {
+            return (int)$m[1];
+        }
+
+        return -1;
     }
 
     /**
