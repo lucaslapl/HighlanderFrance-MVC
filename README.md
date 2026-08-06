@@ -89,8 +89,28 @@ volontairement non programmés (opérations ponctuelles à lancer à la main).
 | GET | `/login`, `/auth/callback`, `/logout` | AuthController |
 | GET | `/profile/{steamid}` | ProfileController::profil |
 | GET | `/api/index-stats`, `/api/logs`, `/api/leaderboard`, `/api/search-players`, `/api/profile-stats` | API |
+| POST | `/api/server/match-ended` | Webhook fin de match (plugin SourceMod, token partagé) |
 | GET/POST | `/admin/*` | AdminController (admin requis) |
 | POST | `/api/admin/*` | Admin/ApiController (admin requis) |
+
+## Webhook fin de match (plugin SourceMod)
+
+Le plugin `plugins/hlfr_match_log` (source + binaire + config + README) détecte
+la fin d'un match TF2 (TFTrue) et déclenche la mise à jour des stats et du
+leaderboard **en temps réel**, au lieu d'attendre le CRON.
+
+- Endpoint : `POST /api/server/match-ended` (JSON `{ token, server, map }`),
+  sans session utilisateur.
+- Authentification : token partagé `SERVER_WEBHOOK_TOKEN` (config `.env`),
+  comparé via `hash_equals` ; option `SERVER_WEBHOOK_ALLOWED_IPS` (liste d'IP
+  autorisées, vide = toutes).
+- Chaîne exécutée : `update_stats.php` → `generate_json.php` →
+  `update_index_stats.php` (mêmes services que le panel admin).
+- Anti-concurrence : verrou `flock` sur `_scripts/webhook_match.lock` (réponse
+  202 si une mise à jour est déjà en cours).
+
+Les CRON des 3 scripts liés aux matchs passent en filet de sécurité (toutes les
+3 h) dans `deploy/crontab.txt`.
 
 ## Notes
 

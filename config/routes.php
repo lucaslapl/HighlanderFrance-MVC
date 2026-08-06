@@ -8,6 +8,7 @@ use App\Controllers\ApiController;
 use App\Controllers\AuthController;
 use App\Controllers\PageController;
 use App\Controllers\ProfileController;
+use App\Controllers\ServerHookController;
 
 /** @var \App\Core\Router $router */
 $router = new \App\Core\Router();
@@ -28,6 +29,9 @@ $router->get('/api/index-stats', ApiController::class, 'indexStats');
 $router->get('/api/logs', ApiController::class, 'logs');
 $router->get('/api/leaderboard', ApiController::class, 'leaderboard');
 $router->get('/api/search-players', ApiController::class, 'searchPlayers');
+
+// --- Webhook serveurs de match (plugin SourceMod hlfr_match_log) ---
+$router->post('/api/server/match-ended', ServerHookController::class, 'matchEnded');
 
 // --- API admin ---
 $router->post('/api/admin/blacklist', AdminApiController::class, 'blacklist');
