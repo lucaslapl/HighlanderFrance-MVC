@@ -27,11 +27,17 @@ body #main #content .personnal-info .profile-header h2 {
 }
 body #main #content .personnal-info .profile-header h2 .flag-icon {
   width: auto;
-  height: auto;
+  height: 24px;
+  object-fit: contain;
 }
 body #main #content .personnal-info .profile-header span {
   font-size: 0.7em;
   font-weight: normal;
+}
+body #main #content .personnal-info .flag-icon {
+  width: auto;
+  height: 24px;
+  object-fit: contain;
 }
 body #main #content .personnal-info .steam-profile-link {
   color: #fff;
@@ -303,6 +309,9 @@ body #main #content .player-stats .no-data {
   font-style: italic;
   color: #ccc;
 }
+body #main #content .player-stats .recent-matches {
+  overflow-x: auto;
+}
 body #main #content .player-stats .recent-matches h3 {
   font-size: 1.6em;
 }
@@ -379,6 +388,16 @@ body #main #content .player-stats {
   }
 }
 @media all and (max-width: 560px) {
+  body #main #content .personnal-info .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  body #main #content .personnal-info .profile-header h2 {
+    font-size: 2em;
+  }
+  body #main #content .personnal-info .profile-header .flex.align-center.gap-10 {
+    flex-wrap: wrap;
+  }
   body #main #content .player-stats .stats-grid.stats-key {
     grid-template-columns: 1fr;
   }

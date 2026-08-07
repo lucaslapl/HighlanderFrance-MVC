@@ -553,6 +553,7 @@ body #main #content #join a:hover {
   color: #eee;
   font-weight: 500;
   width: 45%; /* Permet d'aligner parfaitement le VS au centre */
+  min-width: 0; /* Permet au text-overflow: ellipsis de fonctionner en flex */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -760,6 +761,7 @@ body #main #content #join a:hover {
   color: #fff;
   border-radius: 6px;
   font-size: 0.95em;
+  box-sizing: border-box;
 }
 .leaderboard-filter .search-container .search-dropdown {
   position: absolute;
@@ -803,6 +805,7 @@ body #main #content #join a:hover {
 
 .leaderboard-container {
   width: 100%;
+  overflow-x: auto;
 }
 .leaderboard-container #leaderboard-table {
   width: 100%;
@@ -964,6 +967,7 @@ body #main #content #join a:hover {
   display: flex;
   justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .page-btn {
@@ -1002,6 +1006,26 @@ footer {
 }
 footer a {
   color: #fbb7fb;
+}
+
+/* Conteneur défilable pour les tableaux larges (page Match Stats, etc.) */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* Filtres Hall of Fame : les onglets et la recherche peuvent se replier sur petits écrans */
+.leaderboard-filter {
+  flex-wrap: wrap;
+}
+
+.leaderboard-filter .leaderboard-tabs {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.leaderboard-filter .search-container {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /***** MEDIA QUERIES *****/
@@ -1092,6 +1116,9 @@ footer a {
   body #main #content #staff #sous-staff {
     flex-direction: column;
   }
+  body #main #content {
+    padding: 0 20px;
+  }
 }
 @media all and (max-width: 726px) {
   body #header nav {
@@ -1106,6 +1133,9 @@ footer a {
   }
   body #main #content #questions {
     width: 100%;
+  }
+  body #main #content {
+    padding: 0 14px;
   }
   body #main #content #questions ul {
     line-height: unset;
@@ -1127,6 +1157,7 @@ footer a {
   }
   body #main #content #logsTable {
     font-size: 0.8em;
+    min-width: 520px;
   }
 }
 @media all and (max-width: 650px) {
@@ -1141,6 +1172,22 @@ footer a {
   body #header nav .nav-content ul {
     flex-direction: column;
     gap: 40px;
+  }
+  /* Agenda des prochains matchs (page d'accueil) : passage en colonnes */
+  .etf2l-agenda-container {
+    padding: 15px;
+  }
+  .agenda-item {
+    flex-wrap: wrap;
+  }
+  .agenda-item .match-details {
+    flex: 1 1 100%;
+    order: 3;
+    padding: 10px 0 0 0;
+  }
+  .agenda-item .match-action {
+    order: 2;
+    margin-left: auto;
   }
 }
 @media all and (max-width: 450px) {

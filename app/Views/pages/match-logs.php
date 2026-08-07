@@ -6,17 +6,19 @@
     <input type="text" id="filter-map" placeholder="Rechercher une map…">
 </div>
 
-<table id="logsTable" border="0" cellspacing="20">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Carte</th>
-            <th>Titre</th>
-        </tr>
-    </thead>
-    <tbody id="logs">
+<div class="table-scroll">
+    <table id="logsTable" border="0" cellspacing="20">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Carte</th>
+                <th>Titre</th>
+            </tr>
+        </thead>
+        <tbody id="logs">
 
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
 
 <div id="pagination" class="pagination"></div>
