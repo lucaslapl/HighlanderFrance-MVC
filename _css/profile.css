@@ -464,4 +464,38 @@ body #main #content .profile-tabs .profile-tab-btn.active {
   align-items: center;
 }
 
+/* --- Badges de rôle sur les profils joueurs --- */
+body #main #content .personnal-info .staff-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+body #main #content .personnal-info .badge-staff {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 0.72em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 12px;
+  color: #fff;
+  background: #444;
+}
+body #main #content .personnal-info .badge-staff.badge-founder {
+  background-color: #f0ad4e;
+}
+body #main #content .personnal-info .badge-staff.badge-admin {
+  background-color: #d9534f;
+}
+body #main #content .personnal-info .badge-staff.badge-moderator {
+  background-color: #5bc0de;
+}
+body #main #content .personnal-info .badge-staff.badge-mentor {
+  background-color: #5cb85c;
+}
+body #main #content .personnal-info .badge-staff.badge-mixer {
+  background-color: #9b59b6;
+}
+
 /*# sourceMappingURL=profile.css.map */
