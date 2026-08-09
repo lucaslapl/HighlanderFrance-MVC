@@ -29,14 +29,17 @@ final class ServerHookController extends Controller
     {
         $server = (string)($this->payload('server') ?? 'inconnu');
         $map = (string)($this->payload('map') ?? '');
+        $who = $server . ($map !== '' ? ' - ' . $map : '');
 
         if (!$this->authenticate()) {
+            AdminLogger::log('webhook_match_ended', null, 'FAILED (token invalide - ' . $who . ')');
             $this->json(['success' => false, 'message' => 'Non autorisé.'], 403);
 
             return;
         }
 
         if (!$this->ipAllowed()) {
+            AdminLogger::log('webhook_match_ended', null, 'FAILED (IP non autorisée - ' . $who . ')');
             $this->json(['success' => false, 'message' => 'IP non autorisée.'], 403);
 
             return;
@@ -67,7 +70,7 @@ final class ServerHookController extends Controller
             $generateJson = (new GenerateJsonService($db))->run();
             $indexStats = (new UpdateIndexStatsService($db))->run();
 
-            AdminLogger::log('webhook_match_ended', $logToken, 'SUCCESS (via ' . $server . ($map !== '' ? ' - ' . $map : '') . ')');
+            AdminLogger::log('webhook_match_ended', $logToken, 'SUCCESS (via ' . $who . ')');
 
             $this->json([
                 'success' => true,
