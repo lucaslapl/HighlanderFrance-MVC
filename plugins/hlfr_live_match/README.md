@@ -18,7 +18,8 @@ nom de serveur.
 2. Pendant le match, le plugin envoie un **POST JSON** au site :
    - immédiatement à l'armement du match et à chaque manche gagnée ;
    - sur connexion/déconnexion d'un joueur ;
-   - puis régulièrement (`hlfr_live_interval`, heartbeat 30 s par défaut).
+   - puis régulièrement (`hlfr_live_interval`, heartbeat 120 s par défaut,
+     soit toutes les 2 minutes).
 3. À `game_over`, un statut `ended` est envoyé pour retirer le match du site
    (si le serveur crash en plein match, une expiration côté site nettoie
    l'affichage après ~2 min).
@@ -35,7 +36,7 @@ nom de serveur.
   "updated_at": 1754370120,
   "scores": { "red": 2, "blue": 1 },
   "players": [
-    { "name": "Pseudo", "team": "red", "class": "scout", "steamid": "STEAM_1:0:…", "score": 42 }
+    { "name": "Pseudo", "team": "red", "class": "scout", "steamid": "STEAM_1:0:…", "score": 42, "kills": 12, "deaths": 5, "assists": 4, "dmg": 15230, "heal": 890 }
   ],
   "stv": { "connect": "steam://connect/185.xxx.x.x:27020", "ip": "185.xxx.x.x", "port": 27020 }
 }
@@ -43,6 +44,10 @@ nom de serveur.
 
 - `players` : uniquement les joueurs **RED/BLU** en jeu (hors spectateurs, bots
   et SourceTV). `class` est une clé correspondant aux icônes `_img/classes/`.
+- `players[].kills/deaths/assists/dmg/heal` : stats comptabilisées par le plugin
+  pendant le match (events `player_death`, `player_hurt`, `player_healed`),
+  remises à zéro à l'armement du match. `dmg` exclut le self-damage ;
+  `heal` est le soin effectué (beam du Medic).
 - `stv` : présent seulement si la SourceTV est active (`tv_enable` ou client
   SourceTV détecté). Derrière un NAT, l'IP auto (`hostip`) est l'IP interne :
   renseigner `hlfr_live_stv_url` pour forcer l'URL publique.
@@ -78,7 +83,7 @@ cfg/sourcemod/hlfr_live_match.cfg               ← configuration
 |---|---|---|
 | `hlfr_live_enable` | `1` | Active/désactive l'envoi du statut |
 | `hlfr_live_url` | — | URL de l'endpoint live du site |
-| `hlfr_live_interval` | `30.0` | Intervalle (s) du heartbeat pendant un match |
+| `hlfr_live_interval` | `120.0` | Intervalle (s) du heartbeat pendant un match (2 min) |
 | `hlfr_live_debug` | `0` | Logs de debug dans la console |
 | `hlfr_live_require_tournament` | `1` | Exige `mp_tournament` (mettre `0` sur serveur 100 % match) |
 | `hlfr_live_stv_url` | vide | URL SourceTV manuelle (override, NAT) |
@@ -102,8 +107,10 @@ Partagées (créées par `hlfr_match_log`) : `hlfr_webhook_token`,
   - `[HLFR-Live] Statut 'live' accepté (HTTP 200).` → le site a bien reçu l'état.
   - `[HLFR-Live] Site injoignable (HTTP 0).` / `Refusé (HTTP 403).` / `(HTTP 404).`
     → vérifier l'URL, le token et les IP autorisées du site.
-  - `[HLFR-Live] ... hlfr_webhook_token absent (plugin hlfr_match_log chargé ?).`
-    → `hlfr_match_log` n'est pas chargé sur ce serveur.
+  - `[HLFR-Live] Convar hlfr_webhook_token introuvable ...`
+    → `hlfr_match_log` n'est pas chargé (l'ordre de chargement n'est plus un
+    problème depuis 1.1.0 : les convars partagées sont résolues dans
+    `OnAllPluginsLoaded`).
 
 ## Robustesse
 

@@ -6,7 +6,7 @@
 #include <tf2_stocks>
 #include <ripext>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.1.0"
 
 public Plugin myinfo =
 {
@@ -46,13 +46,26 @@ bool   g_HttpPending;    // une requête HTTP est en vol (évite l'empilement)
 bool   g_SendEndedPending; // un statut "ended" attend la fin de la requête en vol
 char   g_LastStatus[16]; // dernier statut envoyé (diagnostics)
 
+// --- Stats de match par joueur (scope = le match armé, reset à l'armement) ---
+enum
+{
+	Stats_Kills,
+	Stats_Deaths,
+	Stats_Assists,
+	Stats_Dmg,
+	Stats_Heal,
+	Stats_Count
+};
+
+int g_Stats[MAXPLAYERS + 1][Stats_Count];
+
 public void OnPluginStart()
 {
 	CreateConVar("hlfr_live_version", PLUGIN_VERSION, "Version du plugin HLFR Live Match", FCVAR_NOTIFY);
 
 	g_hEnabled    = CreateConVar("hlfr_live_enable", "1", "Active/désactive l'envoi du statut live.", _, true, 0.0, true, 1.0);
 	g_hUrl        = CreateConVar("hlfr_live_url", "https://highlanderfrance.tf/api/server/live-status", "URL de l'endpoint live du site Highlander France.");
-	g_hInterval   = CreateConVar("hlfr_live_interval", "30.0", "Intervalle (secondes) entre deux mises à jour du statut pendant un match.", _, true, 5.0);
+	g_hInterval   = CreateConVar("hlfr_live_interval", "120.0", "Intervalle (secondes) entre deux mises à jour du statut pendant un match.", _, true, 5.0);
 	g_hDebug      = CreateConVar("hlfr_live_debug", "0", "Logs de debug supplémentaires dans la console du serveur.", _, true, 0.0, true, 1.0);
 	g_hRequireTournament = CreateConVar("hlfr_live_require_tournament", "1", "Exige mp_tournament pour considérer le match comme en direct. Mettez 0 sur un serveur 100% match (TFTrue).", _, true, 0.0, true, 1.0);
 	g_hStvUrl     = CreateConVar("hlfr_live_stv_url", "", "URL SourceTV manuelle (ex: steam://connect/185.xxx.x.x:27020). Vide = construction auto (hostip + tv_port). Utile derrière un NAT.");
@@ -60,31 +73,44 @@ public void OnPluginStart()
 
 	AutoExecConfig(true, "hlfr_live_match");
 
-	// Convars partagées : créées par hlfr_match_log, on se contente de les lire.
+	// Convars natives du serveur / du jeu.
 	g_hMPTournament  = FindConVar("mp_tournament");
 	g_hHostname      = FindConVar("hostname");
 	g_hHostIp        = FindConVar("hostip");
 	g_hTvEnable      = FindConVar("tv_enable");
 	g_hTvPort        = FindConVar("tv_port");
 	g_hTvPassword    = FindConVar("tv_password");
-	g_hToken         = FindConVar("hlfr_webhook_token");
-	g_hServerName    = FindConVar("hlfr_server_name");
 
-	if (g_hToken == null)
-	{
-		LogError("[HLFR-Live] Convar hlfr_webhook_token introuvable : le plugin hlfr_match_log doit être installé pour fournir le token partagé.");
-	}
+	// Les convars partagées (hlfr_webhook_token, hlfr_server_name) sont créées
+	// par hlfr_match_log : elles sont résolues dans OnAllPluginsLoaded pour ne
+	// pas dépendre de l'ordre alphabétique de chargement des plugins.
 
 	HookEvent("teamplay_game_over",   Event_GameOver);
 	HookEvent("tf_game_over",         Event_GameOver);
 	HookEvent("teamplay_round_win",   Event_RoundWin);
 	HookEvent("teamplay_round_start", Event_RoundStart);
+	HookEvent("player_death",         Event_PlayerDeath);
+	HookEvent("player_hurt",          Event_PlayerHurt);
+	HookEvent("player_healed",        Event_PlayerHealed);
 
 	RegAdminCmd("sm_hlfr_live",        Command_LiveSync, ADMFLAG_GENERIC, "Renvoie immédiatement le statut live actuel au site.");
 	RegAdminCmd("sm_hlfr_live_status", Command_LiveStatus, ADMFLAG_GENERIC, "Affiche l'état du plugin (dépannage).");
 
 	LogMessage("[HLFR-Live] Version %s chargée (interval=%.0fs, require_tournament=%d).", PLUGIN_VERSION, GetConVarFloat(g_hInterval), GetConVarBool(g_hRequireTournament));
 	PrintToServer("[HLFR-Live] Version %s chargée.", PLUGIN_VERSION);
+}
+
+public void OnAllPluginsLoaded()
+{
+	// Convars créées par hlfr_match_log : résolues ici, après le chargement de
+	// tous les plugins, pour ne pas dépendre de l'ordre alphabétique de chargement.
+	g_hToken      = FindConVar("hlfr_webhook_token");
+	g_hServerName = FindConVar("hlfr_server_name");
+
+	if (g_hToken == null)
+	{
+		LogError("[HLFR-Live] Convar hlfr_webhook_token introuvable : le plugin hlfr_match_log doit être installé pour fournir le token partagé.");
+	}
 }
 
 public void OnMapStart()
@@ -112,11 +138,24 @@ void ResetMatchState()
 	g_ScoreBlue = 0;
 	g_StartedAt = 0;
 
+	ResetStats();
+
 	if (g_hHeartbeat != null && IsValidHandle(g_hHeartbeat))
 	{
 		KillTimer(g_hHeartbeat);
 	}
 	g_hHeartbeat = null;
+}
+
+void ResetStats()
+{
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		for (int s = 0; s < Stats_Count; s++)
+		{
+			g_Stats[client][s] = 0;
+		}
+	}
 }
 
 public void OnClientPutInServer(int client)
@@ -151,6 +190,7 @@ void ArmMatch()
 	}
 
 	g_Live = true;
+	ResetStats();
 	if (g_StartedAt == 0)
 	{
 		g_StartedAt = GetTime();
@@ -217,6 +257,63 @@ public void Event_RoundWin(Event event, const char[] name, bool dontBroadcast)
 	}
 
 	SendStatus("live");
+}
+
+public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+	int victim    = GetClientOfUserId(event.GetInt("victim"));
+	int attacker  = GetClientOfUserId(event.GetInt("attacker"));
+	int assister  = GetClientOfUserId(event.GetInt("assister"));
+	int assister2 = GetClientOfUserId(event.GetInt("assister2"));
+
+	if (IsPlayerIndex(victim))
+	{
+		g_Stats[victim][Stats_Deaths]++;
+	}
+
+	if (IsPlayerIndex(attacker) && attacker != victim)
+	{
+		g_Stats[attacker][Stats_Kills]++;
+	}
+
+	if (IsPlayerIndex(assister) && assister != victim && assister != attacker)
+	{
+		g_Stats[assister][Stats_Assists]++;
+	}
+
+	if (IsPlayerIndex(assister2) && assister2 != victim && assister2 != attacker && assister2 != assister)
+	{
+		g_Stats[assister2][Stats_Assists]++;
+	}
+}
+
+public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
+{
+	int attacker = GetClientOfUserId(event.GetInt("attacker"));
+	int victim   = GetClientOfUserId(event.GetInt("userid"));
+
+	// On ignore le self-damage (rocket jumps...) et les dégâts du monde (attacker 0).
+	if (!IsPlayerIndex(attacker) || attacker == victim)
+	{
+		return;
+	}
+
+	g_Stats[attacker][Stats_Dmg] += event.GetInt("damage");
+}
+
+public void Event_PlayerHealed(Event event, const char[] name, bool dontBroadcast)
+{
+	int healer = GetClientOfUserId(event.GetInt("healer"));
+
+	if (IsPlayerIndex(healer))
+	{
+		g_Stats[healer][Stats_Heal] += event.GetInt("amount");
+	}
+}
+
+bool IsPlayerIndex(int client)
+{
+	return client > 0 && client <= MaxClients;
 }
 
 public void Event_GameOver(Event event, const char[] name, bool dontBroadcast)
@@ -329,6 +426,18 @@ bool SendStatus(const char[] status)
 
 	char url[512], token[256], server[256];
 	GetConVarString(g_hUrl, url, sizeof(url));
+
+	// Filet de sécurité : un reload de hlfr_match_log en cours de partie peut
+	// avoir invalidé le handle (résolu initialement dans OnAllPluginsLoaded).
+	if (g_hToken == null)
+	{
+		g_hToken = FindConVar("hlfr_webhook_token");
+	}
+	if (g_hServerName == null)
+	{
+		g_hServerName = FindConVar("hlfr_server_name");
+	}
+
 	if (g_hToken != null)
 	{
 		GetConVarString(g_hToken, token, sizeof(token));
@@ -441,6 +550,11 @@ int BuildPlayers(JSONArray arr)
 		player.SetString("class", className);
 		player.SetString("steamid", steamid);
 		player.SetInt("score", GetEntProp(client, Prop_Data, "m_iScore"));
+		player.SetInt("kills", g_Stats[client][Stats_Kills]);
+		player.SetInt("deaths", g_Stats[client][Stats_Deaths]);
+		player.SetInt("assists", g_Stats[client][Stats_Assists]);
+		player.SetInt("dmg", g_Stats[client][Stats_Dmg]);
+		player.SetInt("heal", g_Stats[client][Stats_Heal]);
 		arr.Push(player);
 
 		count++;

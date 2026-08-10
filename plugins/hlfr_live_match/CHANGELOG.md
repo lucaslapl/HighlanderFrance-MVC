@@ -1,5 +1,19 @@
 # Changelog — HLFR Live Match
 
+## 1.1.0 (2026-08-10)
+
+- **Stats de match par joueur** : kills, deaths, assists, dégâts (dmg) et soins
+  (heal), comptabilisés en temps réel via les events TF2 (`player_death`,
+  `player_hurt`, `player_healed`) et remis à zéro à l'armement du match
+  (le warmup n'est pas compté). Chaque joueur du payload expose désormais
+  `kills`, `deaths`, `assists`, `dmg`, `heal`.
+- **Correctif ordre de chargement** : les convars partagées
+  (`hlfr_webhook_token`, `hlfr_server_name`) sont désormais résolues dans
+  `OnAllPluginsLoaded` (et re-résolues avant chaque envoi), pour ne plus
+  dépendre de l'ordre alphabétique de chargement face à `hlfr_match_log`.
+- **Cadence** : intervalle par défaut passé à 120 s (toutes les 2 minutes).
+  Les envois immédiats (manche gagnée, connexion/déconnexion) sont conservés.
+
 ## 1.0.0 (2026-08-10)
 
 Première version.
