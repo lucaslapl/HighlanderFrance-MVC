@@ -10,6 +10,7 @@ use App\Models\Etf2lRepository;
 use App\Models\MatchLogRepository;
 use App\Models\PlayerRepository;
 use App\Services\Auth;
+use App\Services\LiveMatches;
 use App\Services\SteamId;
 
 final class PageController extends Controller
@@ -85,6 +86,51 @@ final class PageController extends Controller
         $this->view('pages/privacy', [
             'title' => 'Highlander France - Politique de Confidentialité',
             'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+        ]);
+    }
+
+    /**
+     * Page d'un match en direct (GET /live/{server}).
+     * Source : cache alimenté par le plugin hlfr_live_match.
+     */
+    public function liveMatch(): void
+    {
+        $server = (string)($this->request?->param('server', '') ?? '');
+        $entry = $server !== '' ? LiveMatches::get($server) : null;
+
+        if ($entry === null) {
+            $this->abort(404);
+        }
+
+        $entry = LiveMatches::enrich($entry);
+        $mapDisplay = self::mapDisplay((string)($entry['map'] ?? ''));
+
+        $redPlayers = [];
+        $bluePlayers = [];
+
+        foreach (($entry['players'] ?? []) as $p) {
+            if (($p['team'] ?? '') === 'red') {
+                $redPlayers[] = $p;
+            } else {
+                $bluePlayers[] = $p;
+            }
+        }
+
+        $redScore = (int)($entry['scores']['red'] ?? 0);
+        $blueScore = (int)($entry['scores']['blue'] ?? 0);
+
+        $this->view('pages/live-match', [
+            'title' => 'Highlander France - ' . $mapDisplay . ' | En direct',
+            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'server' => $server,
+            'entry' => $entry,
+            'mapDisplay' => $mapDisplay,
+            'redPlayers' => $redPlayers,
+            'bluePlayers' => $bluePlayers,
+            'redScore' => $redScore,
+            'blueScore' => $blueScore,
+            'playerCount' => count($redPlayers) + count($bluePlayers),
+            'startedAt' => date('H:i', (int)($entry['started_at'] ?? time())),
         ]);
     }
 

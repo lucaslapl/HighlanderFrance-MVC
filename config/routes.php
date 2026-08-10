@@ -29,9 +29,16 @@ $router->get('/api/index-stats', ApiController::class, 'indexStats');
 $router->get('/api/logs', ApiController::class, 'logs');
 $router->get('/api/leaderboard', ApiController::class, 'leaderboard');
 $router->get('/api/search-players', ApiController::class, 'searchPlayers');
+$router->get('/api/live-matches', ApiController::class, 'liveMatches');
 
 // --- Webhook serveurs de match (plugin SourceMod hlfr_match_log) ---
 $router->post('/api/server/match-ended', ServerHookController::class, 'matchEnded');
+
+// --- Live des serveurs de match (plugin SourceMod hlfr_live_match) ---
+$router->post('/api/server/live-status', ServerHookController::class, 'liveStatus');
+
+// --- Match en direct ---
+$router->get('/live/{server}', PageController::class, 'liveMatch');
 
 // --- API admin ---
 $router->post('/api/admin/blacklist', AdminApiController::class, 'blacklist');

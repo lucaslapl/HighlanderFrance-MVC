@@ -21,4 +21,19 @@ final class SteamId
 
         return null;
     }
+
+    /**
+     * Convertit un SteamID "STEAM_1:0:12345" (format AuthId_Steam2 envoyé par les
+     * plugins SourceMod) en SteamID64.
+     */
+    public static function fromSteam2(string $steam2): ?string
+    {
+        if (preg_match('/^STEAM_[0-1]:([0-1]):(\d+)$/', trim($steam2), $matches)) {
+            $account = bcadd(bcmul($matches[2], '2'), $matches[1]);
+
+            return bcadd($account, self::STEAMID64_CONSTANT);
+        }
+
+        return null;
+    }
 }

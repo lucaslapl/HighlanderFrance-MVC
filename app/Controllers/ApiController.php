@@ -6,11 +6,28 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Services\LiveMatches;
 use App\Services\LogsTfApi;
 use App\Services\SteamId;
 
 final class ApiController extends Controller
 {
+    /**
+     * Matchs en cours (cache alimenté par le plugin hlfr_live_match).
+     * GET /api/live-matches
+     */
+    public function liveMatches(): void
+    {
+        header('Cache-Control: no-store');
+
+        $matches = [];
+
+        foreach (LiveMatches::all() as $server => $entry) {
+            $matches[] = LiveMatches::enrich($entry);
+        }
+
+        $this->json(['data' => $matches]);
+    }
     /**
      * Statistiques globales de la page d'accueil.
      * Pendant la migration, on lit le cache généré par les crons de l'ancien site.

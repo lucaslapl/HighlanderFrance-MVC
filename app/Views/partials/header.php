@@ -32,6 +32,13 @@ $isLoggedIn = Auth::isLoggedIn();
                 <li><a href="/hall-of-fame" class="<?= $currentPath === '/hall-of-fame' ? 'active' : '' ?>">Hall of Fame</a></li>
                 <li><a href="/match-logs" class="<?= $currentPath === '/match-logs' ? 'active' : '' ?>">Match Stats</a></li>
             </ul>
+
+            <a href="/live" id="liveNavBadge" class="nav-live-badge" hidden>
+                <span class="live-dot" aria-hidden="true"></span>
+                <span class="live-text">EN DIRECT</span>
+                <span class="live-map" id="liveNavMap"></span>
+                <i class="fa-solid fa-chevron-right live-chevron" aria-hidden="true"></i>
+            </a>
             <div class="nav-right flex justify-center align-center">
                 <div id="session-profile" class="flex justify-center align-center">
                     <?php if ($isLoggedIn): ?>

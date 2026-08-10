@@ -1480,3 +1480,137 @@ footer a {
   font-size: 16px;
 }
 
+
+/***** MATCH EN DIRECT *****/
+
+/* Badge "EN DIRECT" de la barre de navigation */
+body #header nav .nav-content .nav-live-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+  background: rgba(255, 60, 60, 0.16);
+  border: 1px solid rgba(255, 90, 90, 0.65);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: bold;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+body #header nav .nav-content .nav-live-badge:hover {
+  background: rgba(255, 60, 60, 0.32);
+  border-color: #ff5a5a;
+  transform: scale(1.04);
+}
+body #header nav .nav-content .nav-live-badge[hidden] {
+  display: none;
+}
+.nav-live-badge .live-map {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-live-badge .live-chevron {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Point rouge clignotant */
+.live-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+  background: #ff5252;
+  animation: live-pulse 1.2s ease-out infinite;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }
+  70% { box-shadow: 0 0 0 9px rgba(255, 82, 82, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+}
+
+/* Badge "EN DIRECT" sur la page de détail */
+.matchlog-title .live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff6b6b;
+  background: rgba(255, 60, 60, 0.12);
+  border: 1px solid rgba(255, 90, 90, 0.5);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* Lien SourceTV */
+.live-stv {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+.live-stv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(205deg, rgb(72, 30, 71) 8%, rgb(78, 14, 73) 100%);
+  border: 1px solid #b06ab8;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: bold;
+  font-size: 14px;
+  transition: 0.25s;
+}
+.live-stv-btn:hover {
+  background: #b06ab8;
+  color: #000;
+}
+.live-stv-hint {
+  font-size: 13px;
+  color: #bbb;
+}
+
+/* Match terminé (page détail) */
+.live-ended {
+  text-align: center;
+  background: rgba(0, 0, 0, 0.5411764706);
+  border-radius: 8px;
+  padding: 40px 20px;
+  margin-top: 25px;
+  color: #ccc;
+  font-size: 16px;
+}
+.live-ended-title {
+  color: #2ecc71;
+  font-size: 20px;
+  font-weight: bold;
+}
+.live-ended .btn-match-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #fff;
+  background: #7a3e8a;
+  border-radius: 8px;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+.live-ended .btn-match-link:hover {
+  background: #b06ab8;
+  color: #000;
+}
+
+/* Mobile : badge nav réduit (point + EN DIRECT) */
+@media all and (max-width: 870px) {
+  body #header nav .nav-content .nav-live-badge .live-map {
+    display: none;
+  }
+}

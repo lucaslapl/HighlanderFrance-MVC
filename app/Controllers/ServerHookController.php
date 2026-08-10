@@ -8,9 +8,9 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Services\AdminLogger;
 use App\Services\Crons\GenerateJsonService;
-use App\Services\Crons\SyncSteamService;
 use App\Services\Crons\UpdateIndexStatsService;
 use App\Services\Crons\UpdateStatsService;
+use App\Services\LiveMatches;
 
 /**
  * Endpoint public appelé par le plugin SourceMod (hlfr_match_log) à la fin
@@ -22,6 +22,50 @@ use App\Services\Crons\UpdateStatsService;
 final class ServerHookController extends Controller
 {
     private const LOCK_FILE = DATA_DIR . '/webhook_match.lock';
+
+    private ?array $cachedBody = null;
+
+    /**
+     * POST /api/server/live-status
+     * Body (JSON) : { token, server, map, status: "live"|"ended", scores,
+     *                players[], started_at, updated_at, stv }
+     *
+     * Léger (aucune pipeline stats) : écrit simplement l'état live dans le
+     * cache des matchs en cours, consommé par /api/live-matches.
+     */
+    public function liveStatus(): void
+    {
+        $server = (string)($this->payload('server') ?? '');
+        $status = (string)($this->payload('status') ?? '');
+        $who = $server !== '' ? $server : 'inconnu';
+
+        if (!$this->authenticate()) {
+            AdminLogger::log('webhook_live_status', null, 'FAILED (token invalide - ' . $who . ')');
+            $this->json(['success' => false, 'message' => 'Non autorisé.'], 403);
+
+            return;
+        }
+
+        if (!$this->ipAllowed()) {
+            AdminLogger::log('webhook_live_status', null, 'FAILED (IP non autorisée - ' . $who . ')');
+            $this->json(['success' => false, 'message' => 'IP non autorisée.'], 403);
+
+            return;
+        }
+
+        if ($server === '' || !in_array($status, ['live', 'ended'], true)) {
+            $this->json(['success' => false, 'message' => 'Paramètres invalides.'], 400);
+
+            return;
+        }
+
+        $accepted = LiveMatches::apply($server, $status, $this->body());
+
+        $this->json([
+            'success' => $accepted,
+            'message' => $accepted ? 'Statut mis à jour.' : 'Statut obsolète ignoré.',
+        ]);
+    }
 
     /**
      * POST /api/server/match-ended
@@ -150,15 +194,30 @@ final class ServerHookController extends Controller
      */
     private function payload(string $key, mixed $default = null): mixed
     {
-        $raw = file_get_contents('php://input');
+        $body = $this->body();
 
-        if ($raw !== false && $raw !== '') {
-            $data = json_decode($raw, true);
-            if (is_array($data) && array_key_exists($key, $data)) {
-                return $data[$key];
-            }
+        if (array_key_exists($key, $body)) {
+            return $body[$key];
         }
 
         return $_POST[$key] ?? $_GET[$key] ?? $default;
+    }
+
+    /**
+     * Corps JSON décodé, mis en cache pour éviter de relire php://input à
+     * chaque appel de payload().
+     */
+    private function body(): array
+    {
+        if ($this->cachedBody !== null) {
+            return $this->cachedBody;
+        }
+
+        $raw = file_get_contents('php://input');
+        $data = json_decode($raw, true);
+
+        $this->cachedBody = is_array($data) ? $data : [];
+
+        return $this->cachedBody;
     }
 }
