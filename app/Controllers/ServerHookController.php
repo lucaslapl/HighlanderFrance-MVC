@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Services\AdminLogger;
 use App\Services\Crons\GenerateJsonService;
+use App\Services\Crons\SyncSteamService;
 use App\Services\Crons\UpdateIndexStatsService;
 use App\Services\Crons\UpdateStatsService;
 
@@ -15,7 +16,8 @@ use App\Services\Crons\UpdateStatsService;
  * Endpoint public appelé par le plugin SourceMod (hlfr_match_log) à la fin
  * d'un match. Authentifié par un token partagé (SERVER_WEBHOOK_TOKEN),
  * sans session utilisateur. Déclenche la chaîne de mise à jour des stats
- * et du leaderboard (même pipeline que le CRON, en temps réel).
+ * et du leaderboard (même pipeline que le CRON, en temps réel) :
+ * update_stats → sync_steam → generate_json → update_index_stats.
  */
 final class ServerHookController extends Controller
 {
@@ -67,6 +69,7 @@ final class ServerHookController extends Controller
             $db = Database::connection();
 
             $updateStats = (new UpdateStatsService($db))->run();
+            $syncSteam = (new SyncSteamService($db))->run();
             $generateJson = (new GenerateJsonService($db))->run();
             $indexStats = (new UpdateIndexStatsService($db))->run();
 
@@ -76,7 +79,7 @@ final class ServerHookController extends Controller
                 'success' => true,
                 'message' => 'Mise à jour déclenchée par webhook (' . $server . ').',
                 'processed_logs' => $this->extractProcessedLogs($updateStats),
-                'details' => [$updateStats, $generateJson, $indexStats],
+                'details' => [$updateStats, $syncSteam, $generateJson, $indexStats],
             ]);
         } catch (\Throwable $e) {
             error_log('Webhook match ended : ' . $e->getMessage());
