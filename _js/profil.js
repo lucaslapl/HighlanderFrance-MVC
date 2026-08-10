@@ -277,18 +277,24 @@ function renderActivityCalendar(data) {
 
     const map = (data && typeof data === 'object') ? data : {};
 
+    // Clés de dates UTC pour correspondre à strftime('%Y-%m-%d', date, 'unixepoch') côté SQL
     const pad = (n) => String(n).padStart(2, '0');
-    const dateKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const dateKey = (d) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 
-    // Semaine courante commençant un dimanche, fenêtre de 3 mois en arrière
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Semaine courante commençant un dimanche, fenêtre de 3 mois en arrière.
+    // Tout est calculé en UTC pour coller aux clés produites par le SQL.
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const endWeek = new Date(today);
-    endWeek.setDate(today.getDate() - today.getDay());
+    endWeek.setUTCDate(today.getUTCDate() - today.getUTCDay());
     const start = new Date(endWeek);
-    start.setMonth(start.getMonth() - 3);
+    start.setUTCMonth(start.getUTCMonth() - 3);
+    // Recalage sur le dimanche de cette semaine-là (pour aligner les lignes Lun/Mer/Ven)
+    start.setUTCDate(start.getUTCDate() - start.getUTCDay());
 
-    const weeks = Math.max(1, Math.round((endWeek - start) / (7 * 86400000)));
+    // Nombre de colonnes : +1 pour inclure la semaine courante (sinon les matchs
+    // les plus récents sont tronqués par l'arrondi).
+    const weeks = Math.max(1, Math.round((endWeek - start) / (7 * 86400000)) + 1);
 
     // Seuils par quartiles des jours non nuls (niveau de couleur)
     const counts = Object.values(map).filter(v => v > 0).sort((a, b) => a - b);
@@ -313,16 +319,16 @@ function renderActivityCalendar(data) {
     let monthLabel = '';
     const mCursor = new Date(start);
     for (let w = 0; w < weeks; w++) {
-        const m = mCursor.getMonth();
+        const m = mCursor.getUTCMonth();
         if (m !== lastMonth) {
             if (lastMonth !== -1) {
                 months += `<span style="grid-column: ${monthStart} / ${w + 1}">${monthLabel}</span>`;
             }
-            monthLabel = mCursor.toLocaleDateString('fr-FR', { month: 'short' });
+            monthLabel = mCursor.toLocaleDateString('fr-FR', { month: 'short', timeZone: 'UTC' });
             monthStart = w + 1;
             lastMonth = m;
         }
-        mCursor.setDate(mCursor.getDate() + 7);
+        mCursor.setUTCDate(mCursor.getUTCDate() + 7);
     }
     if (lastMonth !== -1) {
         months += `<span style="grid-column: ${monthStart} / ${weeks + 1}">${monthLabel}</span>`;
@@ -347,7 +353,7 @@ function renderActivityCalendar(data) {
             const key = dateKey(d);
             const count = map[key] || 0;
             cells += `<div class="activity-calendar__cell activity-calendar__cell--${level(count)}" data-date="${key}" data-count="${count}"></div>`;
-            d.setDate(d.getDate() + 1);
+            d.setUTCDate(d.getUTCDate() + 1);
         }
     }
     container.style.gridTemplateColumns = `repeat(${weeks}, 10px)`;
