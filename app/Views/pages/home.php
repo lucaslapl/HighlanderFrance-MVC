@@ -32,7 +32,7 @@
 <div id="numbers">
     <p>Highlander France, c'est :</p>
     <ul>
-        <li><span><b>+150</b></span> membres actifs</li>
+        <li><span><b>+160</b></span> membres actifs</li>
         <li><b><span id="matchCount"><img class="stat-load" src="/_img/loading.gif" alt="Chargement..."></span></b> matchs organisés</li>
         <li><b><span>+</span><span id="hoursPlayed"><img class="stat-load" src="/_img/loading.gif" alt="Chargement..."></span></b> heures de matchs jouées au total</li>
     </ul>
