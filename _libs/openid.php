@@ -194,7 +194,7 @@ class LightOpenID
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($curl, CURLOPT_HEADER, false);
         curl_setopt($curl, CURLOPT_USERAGENT, $this->user_agent);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->verify_peer === false ? false : true);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         
         if ($method == 'POST') {
@@ -456,24 +456,12 @@ class LightOpenID
 
     protected function request($url, $method='GET', $params=array(), $update_claimed_id=false)
     {
-        $use_curl = false;
-        
-        if (function_exists('curl_init')) {
-            if (!$use_curl) {
-                # When allow_url_fopen is disabled, PHP streams will not work.
-                $use_curl = !ini_get('allow_url_fopen');
-            }
-            
-            if (!$use_curl) {
-                # When there is no HTTPS wrapper, PHP streams cannott be used.
-                $use_curl = !in_array('https', stream_get_wrappers());
-            }
-            
-            if (!$use_curl) {
-                # With open_basedir or safe_mode set, cURL can't follow redirects.
-                $use_curl = !(ini_get('safe_mode') || ini_get('open_basedir'));
-            }
-        }
+        # cURL est privilégié : il suit les redirections et utilise son propre
+        # bundle CA au niveau libcurl, dont open_basedir/safe_mode ne s'appliquent
+        # pas (ceux-ci ne concernent que les wrappers streams PHP). Les wrappers
+        # streams ne servent qu'en dernier recours, car ils exigent un cafile
+        # accessible depuis l'espace autorisé par open_basedir.
+        $use_curl = function_exists('curl_init');
         
         return
             $use_curl

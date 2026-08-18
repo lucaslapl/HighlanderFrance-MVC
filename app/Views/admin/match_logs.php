@@ -63,7 +63,10 @@ $(document).on("click", ".btn-blacklist", function () {
         type: "POST",
         url: "/api/admin/blacklist",
         data: { action: "add", log_id: logId },
-        headers: { "X-Requested-With": "XMLHttpRequest" },
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-Token": "<?= \App\Services\Csrf::token() ?>"
+        },
         dataType: "json"
     }).done(function (res) {
         if (res.success) {
@@ -93,7 +96,10 @@ $(document).on("click", ".btn-mode", function () {
         type: "POST",
         url: "/api/admin/match-mode",
         data: { action: "switch_mode", log_id: logId, mode: targetMode },
-        headers: { "X-Requested-With": "XMLHttpRequest" },
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-Token": "<?= \App\Services\Csrf::token() ?>"
+        },
         dataType: "json"
     }).done(function (res) {
         alert(res.message);

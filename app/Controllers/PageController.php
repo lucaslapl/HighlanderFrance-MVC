@@ -204,6 +204,7 @@ final class PageController extends Controller
         $this->view('pages/match-log', [
             'title' => 'Highlander France - ' . self::mapDisplay((string)$log['map_name']) . ' | ' . $gameModeLabel,
             'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'ogType' => 'article',
             'logId' => $logId,
             'mapDisplay' => self::mapDisplay((string)$log['map_name']),
             'gameMode' => $gameMode,

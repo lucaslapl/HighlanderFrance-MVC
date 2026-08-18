@@ -22,6 +22,7 @@
         <i class="fa-solid fa-plus"></i> Ajouter un log à la blacklist
     </h3>
     <form action="/api/admin/blacklist" method="POST" class="admin-form-stack">
+        <?= \App\Services\Csrf::field() ?>
         <input type="hidden" name="action" value="add">
         <div class="form-group">
             <label for="log_id">ID du log (logs.tf) :</label>
@@ -80,6 +81,7 @@
                         <td class="text-center">
                             <form action="/api/admin/blacklist" method="POST" style="display: inline;"
                                 onsubmit="return confirm('Retirer le log #<?= (int)$entry['log_id'] ?> de la blacklist ?');">
+                                <?= \App\Services\Csrf::field() ?>
                                 <input type="hidden" name="action" value="remove">
                                 <input type="hidden" name="log_id" value="<?= (int)$entry['log_id'] ?>">
                                 <button type="submit" class="admin-btn admin-btn--success">

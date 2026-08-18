@@ -10,9 +10,25 @@ declare(strict_types=1);
 define('APP_ROOT', dirname(__DIR__));
 
 if (is_file(APP_ROOT . '/config/.env')) {
-    $env = parse_ini_file(APP_ROOT . '/config/.env');
-    if (is_array($env)) {
-        $_ENV = array_merge($_ENV, $env);
+    // Parser minimaliste et robuste : parse_ini_file() échoue selon la version
+    // de PHP sur certains commentaires `#` (ex. contenant des parenthèses).
+    // Chaque ligne : KEY=VALUE, les lignes vides et les commentaires (# ou ;)
+    // sont ignorés. Les valeurs restantes sont importées dans $_ENV.
+    $lines = file(APP_ROOT . '/config/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || $line[0] === ';') {
+            continue;
+        }
+        $pos = strpos($line, '=');
+        if ($pos === false) {
+            continue;
+        }
+        $key = trim(substr($line, 0, $pos));
+        $value = trim(substr($line, $pos + 1));
+        if ($key !== '') {
+            $_ENV[$key] = $value;
+        }
     }
 }
 
@@ -26,7 +42,11 @@ function env(string $key, mixed $default = null): mixed
 }
 
 define('APP_NAME', 'Highlander France');
-define('APP_DEBUG', true);
+define('APP_DEBUG', (bool)env('APP_DEBUG', false));
+
+// Affiche les erreurs uniquement en développement ; en production on les logge.
+ini_set('display_errors', APP_DEBUG ? '1' : '0');
+ini_set('log_errors', '1');
 
 // Répertoire de données de l'application : base SQLite, caches JSON, logs CRON.
 define('DATA_DIR', APP_ROOT . '/_scripts');

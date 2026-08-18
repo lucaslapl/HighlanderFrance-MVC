@@ -56,6 +56,16 @@ final class Request
         return $_SERVER[$key] ?? $default;
     }
 
+    /**
+     * Lit un en-tête HTTP (ex: X-CSRF-Token).
+     */
+    public function header(string $name, mixed $default = null): mixed
+    {
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+
+        return $_SERVER[$key] ?? $default;
+    }
+
     public function isAjax(): bool
     {
         return strtolower((string)($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';

@@ -60,6 +60,15 @@
             return (text || '').toString().replace(/"/g, '&quot;');
         }
 
+        function escapeHtml(text) {
+            return (text == null ? '' : String(text))
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function renderTable(page) {
             const start = (page - 1) * logsPerPage;
             const end = start + logsPerPage;
@@ -81,11 +90,11 @@
                 rows += `
             <tr class="log-row" data-index="${index}">
                 <td>${log._display}</td>
-                <td>${log.map}</td>
+                <td>${escapeHtml(log.map)}</td>
                 <td>
                     <div class="log-title-cell flex align-center gap-10">
                         <a class="log-link" href="/log/${log.id}">
-                            ${log.title}
+                            ${escapeHtml(log.title)}
                         </a>
                         <a class="log-external" href="https://logs.tf/${log.id}" target="_blank" rel="noopener" title="Voir sur logs.tf">
                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
@@ -177,7 +186,8 @@
                     log_id: logId
                 },
                 headers: {
-                    "X-Requested-With": "XMLHttpRequest"
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-Token": "<?= \App\Services\Csrf::token() ?>"
                 },
                 dataType: "json"
             }).done(function (res) {

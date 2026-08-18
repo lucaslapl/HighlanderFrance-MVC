@@ -37,6 +37,7 @@
             <p class="info-text"><strong>Attention :</strong> Ce changement est <strong>unique et définitif</strong>. Vous ne pourrez plus le modifier par la suite.</p>
 
             <form action="/profile/update-name" method="POST" class="flex flex-column gap-10">
+                <?= \App\Services\Csrf::field() ?>
                 <div class="form-group">
                     <label for="display_name">Nouveau pseudo :</label>
                     <input
@@ -65,6 +66,7 @@
         </div>
     <?php else: ?>
         <form action="/profile/update-country" method="POST" class="country-form">
+            <?= \App\Services\Csrf::field() ?>
             <p>Sélectionnez votre nationalité (ce choix sera <strong>définitif</strong>) :</p>
 
             <div class="flex align-center gap-10">

@@ -60,7 +60,8 @@
                 log_id: logId
             },
             headers: {
-                "X-Requested-With": "XMLHttpRequest"
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-Token": "<?= \App\Services\Csrf::token() ?>"
             },
             dataType: "json"
         }).done(function (res) {

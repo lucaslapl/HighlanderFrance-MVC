@@ -125,20 +125,37 @@ final class AuthController extends Controller
 
         $openid = new \LightOpenID(parse_url($this->baseUrl(), PHP_URL_HOST));
         // Politique SSL commune : vérifié en production, désactivé en WAMP (pas de bundle CA).
+        // LightOpenID passe par cURL (open_basedir ne s'applique pas à cURL),
+        // qui utilise son propre bundle CA : aucune configuration de cafile n'est nécessaire.
         $openid->verify_peer = CURL_VERIFY_SSL;
 
         return $openid;
     }
 
     /**
-     * URL de base du site, déduite de l'environnement courant (prod ou dev).
+     * URL de base du site.
+     *
+     * On privilégie APP_URL (config .env) quand elle est explicitement renseignée
+     * (production) : évite l'injection de host / open redirect. Sinon on retombe
+     * sur le host de la requête (dev WAMP sans .env), en ne faisant confiance au
+     * header X-Forwarded-Proto que si un proxy est explicitement annoncé.
      */
     private function baseUrl(): string
     {
+        $configured = (string)env('APP_URL', '');
+
+        if ($configured !== '') {
+            return rtrim($configured, '/');
+        }
+
         $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
             || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 
-        $host = $_SERVER['HTTP_HOST'] ?? 'highlanderfrance.tf';
+        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
+
+        if ($host === '') {
+            return APP_BASE_URL;
+        }
 
         return ($https ? 'https' : 'http') . '://' . $host;
     }

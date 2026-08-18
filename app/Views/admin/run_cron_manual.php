@@ -18,6 +18,7 @@
 
 <div class="admin-card">
     <form action="/admin/run-cron-manual" method="POST" class="flex flex-column">
+        <?= \App\Services\Csrf::field() ?>
 
         <label for="cron_action" class="admin-form-label">
             Sélectionner l'opération à lancer :

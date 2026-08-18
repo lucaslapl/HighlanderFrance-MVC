@@ -24,6 +24,7 @@
 
     <?php if ($fileExists && $bytes > 0): ?>
         <form action="/admin/view-logs" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir vider l\'intégralité des logs ? Cette action est irréversible.');">
+            <?= \App\Services\Csrf::field() ?>
             <button type="submit" name="clear_logs" class="admin-btn admin-btn--danger">
                 <i class="fa-solid fa-trash-can"></i> Nettoyer le journal
             </button>

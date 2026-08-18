@@ -2,50 +2,70 @@
 /**
  * Layout principal du site.
  * Variables attendues : $title, $description, $styles[], $scripts[], $pageScripts, $content.
+ * Options : $ogType ('website'|'article'), $ogImage, $noIndex (bool).
  */
 $title = $title ?? APP_NAME;
 $description = $description ?? 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.';
 $styles = $styles ?? [];
 $scripts = $scripts ?? [];
 $pageScripts = $pageScripts ?? '';
+$ogType = $ogType ?? 'website';
+$ogImage = $ogImage ?? site_url() . '/_img/meta-bg-hlfr.jpg';
+$canonical = canonical_url();
+$currentUrl = current_url();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://highlanderfrance.tf/">
+    <meta name="robots" content="<?= $noIndex ?? false ? 'noindex, nofollow' : 'index, follow' ?>">
+    <link rel="canonical" href="<?= e($canonical) ?>">
     <title><?= e($title) ?></title>
     <meta name="description" content="<?= e($description) ?>">
+    <meta name="theme-color" content="#14161a">
+    <meta name="generator" content="Highlander France">
 
     <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://highlanderfrance.tf/">
-    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= e($currentUrl) ?>">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="<?= e(APP_NAME) ?>">
+    <meta property="og:type" content="<?= e($ogType) ?>">
     <meta property="og:title" content="<?= e($title) ?>">
     <meta property="og:description" content="<?= e($description) ?>">
-    <meta property="og:image" content="https://highlanderfrance.tf/_img/meta-bg-hlfr.jpg">
+    <meta property="og:image" content="<?= e($ogImage) ?>">
 
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta property="twitter:domain" content="highlanderfrance.tf">
-    <meta property="twitter:url" content="https://highlanderfrance.tf/">
+    <meta property="twitter:url" content="<?= e($currentUrl) ?>">
     <meta name="twitter:title" content="<?= e($title) ?>">
     <meta name="twitter:description" content="<?= e($description) ?>">
-    <meta name="twitter:image" content="https://highlanderfrance.tf/_img/meta-bg-hlfr.jpg">
+    <meta name="twitter:image" content="<?= e($ogImage) ?>">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": <?= json_encode(APP_NAME, JSON_UNESCAPED_UNICODE) ?>,
+        "url": <?= json_encode(site_url(), JSON_UNESCAPED_UNICODE) ?>,
+        "inLanguage": "fr"
+    }
+    </script>
 
     <!-- Favicon standard -->
-    <link rel="shortcut icon" href="https://highlanderfrance.tf/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://highlanderfrance.tf/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://highlanderfrance.tf/favicon-16x16.png">
-    <link rel="icon" type="image/x-icon" href="https://highlanderfrance.tf/favicon.ico">
+    <link rel="shortcut icon" href="<?= e(site_url()) ?>/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= e(site_url()) ?>/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= e(site_url()) ?>/favicon-16x16.png">
+    <link rel="icon" type="image/x-icon" href="<?= e(site_url()) ?>/favicon.ico">
 
     <!-- Apple Touch Icon (iPhone/iPad) -->
-    <link rel="apple-touch-icon" href="https://highlanderfrance.tf/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="<?= e(site_url()) ?>/apple-touch-icon.png">
 
     <!-- Android Chrome -->
-    <link rel="icon" type="image/png" sizes="192x192" href="https://highlanderfrance.tf/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="https://highlanderfrance.tf/android-chrome-512x512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= e(site_url()) ?>/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="<?= e(site_url()) ?>/android-chrome-512x512.png">
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/site.webmanifest">

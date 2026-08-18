@@ -15,7 +15,11 @@ final class ErrorController extends Controller
         405 => 'Méthode non autorisée.',
     ];
 
-    public function handle(int $code): void
+    /**
+     * @param int         $code    Code HTTP de l'erreur.
+     * @param string|null $detail  Détail technique (affiché uniquement si APP_DEBUG).
+     */
+    public function handle(int $code, ?string $detail = null): void
     {
         http_response_code($code);
 
@@ -23,6 +27,8 @@ final class ErrorController extends Controller
             'title' => (self::MESSAGES[$code] ?? 'Erreur') . ' - ' . APP_NAME,
             'code' => $code,
             'message' => self::MESSAGES[$code] ?? 'Une erreur est survenue.',
+            'detail' => (APP_DEBUG && $detail !== null) ? $detail : null,
+            'noIndex' => true,
         ]);
     }
 

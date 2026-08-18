@@ -35,6 +35,7 @@
 
 <div class="admin-card">
     <form action="/api/admin/player-update" method="POST">
+        <?= \App\Services\Csrf::field() ?>
         <input type="hidden" name="target_steamid" value="<?= e($target['steamid64']) ?>">
 
         <div class="form-section">
