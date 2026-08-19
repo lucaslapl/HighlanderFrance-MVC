@@ -43,6 +43,25 @@ final class PlayerRepository
     }
 
     /**
+     * Recherche de joueurs par pseudo / pseudo d'affichage (Hall of Fame).
+     *
+     * @return array<int, array{steamid: int, name: string, display_name: string|null, avatar: string|null}>
+     */
+    public function search(string $query): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT steamid, name, display_name, avatar
+            FROM players_info
+            WHERE name LIKE :q OR display_name LIKE :q
+            ORDER BY display_name ASC, name ASC
+            LIMIT 10
+        ");
+        $stmt->execute([':q' => '%' . $query . '%']);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Insère le joueur s'il n'existe pas (idempotent).
      */
     public function createIfMissing(string $steamid3): void

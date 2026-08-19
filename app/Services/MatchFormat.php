@@ -34,6 +34,20 @@ final class MatchFormat
     }
 
     /**
+     * Durée en minutes:secondes (intdiv). Retourne [0,0] pour une durée <= 0.
+     *
+     * @return array{min: int, sec: int}
+     */
+    public static function durationParts(int $seconds): array
+    {
+        if ($seconds <= 0) {
+            return ['min' => 0, 'sec' => 0];
+        }
+
+        return ['min' => intdiv($seconds, 60), 'sec' => $seconds % 60];
+    }
+
+    /**
      * Formate une durée en minutes:secondes. Retourne null si <= 0.
      */
     public static function duration(int $seconds): ?string
@@ -42,7 +56,9 @@ final class MatchFormat
             return null;
         }
 
-        return sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
+        $parts = self::durationParts($seconds);
+
+        return sprintf('%d:%02d', $parts['min'], $parts['sec']);
     }
 
     /**

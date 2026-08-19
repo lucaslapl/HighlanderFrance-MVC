@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Models\PlayerRepository;
 use App\Services\LiveMatches;
 use App\Services\LogsTfApi;
 use App\Services\SteamId;
@@ -96,17 +97,8 @@ final class ApiController extends Controller
             return;
         }
 
-        $stmt = Database::connection()->prepare("
-            SELECT steamid, name, display_name, avatar
-            FROM players_info
-            WHERE name LIKE :q OR display_name LIKE :q
-            ORDER BY display_name ASC, name ASC
-            LIMIT 10
-        ");
-        $stmt->execute([':q' => '%' . $query . '%']);
-
         $results = [];
-        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $player) {
+        foreach ((new PlayerRepository(Database::connection()))->search($query) as $player) {
             $results[] = [
                 'steamid' => SteamId::toSteamId64($player['steamid']),
                 'name' => !empty($player['display_name']) ? $player['display_name'] : $player['name'],

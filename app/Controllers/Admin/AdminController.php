@@ -11,6 +11,7 @@ use App\Models\MatchLogRepository;
 use App\Models\PlayerRepository;
 use App\Services\ApiStatus;
 use App\Services\Auth;
+use App\Services\MatchFormat;
 use App\Services\SteamId;
 
 /**
@@ -461,9 +462,8 @@ final class AdminController extends Controller
             return '—';
         }
 
-        $min = intdiv($seconds, 60);
-        $sec = $seconds % 60;
+        $parts = MatchFormat::durationParts((int)$seconds);
 
-        return $min > 0 ? $min . ' min ' . $sec . ' s' : $sec . ' s';
+        return $parts['min'] > 0 ? $parts['min'] . ' min ' . $parts['sec'] . ' s' : $parts['sec'] . ' s';
     }
 }
