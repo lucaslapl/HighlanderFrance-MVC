@@ -219,7 +219,7 @@ final class ProfileController extends Controller
         $rawDate = $data['player']['created_at'] ?? null;
 
         return array_merge($data, [
-            'description' => APP_NAME . ' est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'styles' => ['/_css/profile.css'],
             'scripts' => [
                 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js',

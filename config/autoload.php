@@ -63,6 +63,15 @@ function canonical_url(): string
 }
 
 /**
+ * Description par défaut du site, réutilisée comme meta description / fallback
+ * de contenu dans les pages publiques.
+ */
+function site_description(): string
+{
+    return APP_NAME . ' est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.';
+}
+
+/**
  * Aide au rendu des vues : échappe une chaîne pour du HTML.
  */
 function e(?string $value): string

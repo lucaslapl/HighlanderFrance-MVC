@@ -5,7 +5,7 @@
  * Options : $ogType ('website'|'article'), $ogImage, $noIndex (bool).
  */
 $title = $title ?? APP_NAME;
-$description = $description ?? 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.';
+$description = $description ?? site_description();
 $styles = $styles ?? [];
 $scripts = $scripts ?? [];
 $pageScripts = $pageScripts ?? '';

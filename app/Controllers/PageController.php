@@ -23,7 +23,7 @@ final class PageController extends Controller
 
         $this->view('pages/home', [
             'title' => 'Highlander France - Communauté Compétitive de TF2',
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'prochainsMatchs' => $prochainsMatchs,
             'pageScripts' => partial('partials/index_stats_script'),
         ]);
@@ -55,7 +55,7 @@ final class PageController extends Controller
 
         $this->view('pages/staff', [
             'title' => "Highlander France - L'équipe",
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'groups' => $groups,
             'pageScripts' => partial('partials/scroll_animation'),
         ]);
@@ -65,7 +65,7 @@ final class PageController extends Controller
     {
         $this->view('pages/hall-of-fame', [
             'title' => 'Highlander France - Hall of Fame',
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'scripts' => ['/_js/leaderboard.js', '/_js/search_players.js'],
             'pageScripts' => partial('partials/scroll_animation') . partial('partials/hall_of_fame_script'),
         ]);
@@ -75,7 +75,7 @@ final class PageController extends Controller
     {
         $this->view('pages/match-logs', [
             'title' => 'Highlander France - Logs des Matchs',
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'pageScripts' => partial('partials/scroll_animation') . partial('partials/match_logs_script', [
                 'isAdmin' => Auth::isAdmin(),
             ]),
@@ -86,7 +86,7 @@ final class PageController extends Controller
     {
         $this->view('pages/privacy', [
             'title' => 'Highlander France - Politique de Confidentialité',
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
         ]);
     }
 
@@ -122,7 +122,7 @@ final class PageController extends Controller
 
         $this->view('pages/live-match', [
             'title' => 'Highlander France - ' . $mapDisplay . ' | En direct',
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'server' => $server,
             'entry' => $entry,
             'mapDisplay' => $mapDisplay,
@@ -194,7 +194,7 @@ final class PageController extends Controller
 
         $this->view('pages/match-log', [
             'title' => 'Highlander France - ' . MatchFormat::mapDisplay((string)$log['map_name']) . ' | ' . $gameModeLabel,
-            'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
+            'description' => site_description(),
             'ogType' => 'article',
             'logId' => $logId,
             'mapDisplay' => MatchFormat::mapDisplay((string)$log['map_name']),
