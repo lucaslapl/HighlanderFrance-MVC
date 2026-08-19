@@ -11,6 +11,7 @@ use App\Models\MatchLogRepository;
 use App\Models\PlayerRepository;
 use App\Services\Auth;
 use App\Services\LiveMatches;
+use App\Services\MatchFormat;
 use App\Services\SteamId;
 
 final class PageController extends Controller
@@ -103,7 +104,7 @@ final class PageController extends Controller
         }
 
         $entry = LiveMatches::enrich($entry);
-        $mapDisplay = self::mapDisplay((string)($entry['map'] ?? ''));
+        $mapDisplay = MatchFormat::mapDisplay((string)($entry['map'] ?? ''));
 
         $redPlayers = [];
         $bluePlayers = [];
@@ -162,23 +163,11 @@ final class PageController extends Controller
         $gameMode = $log['game_mode'] === '6S' ? '6S' : '9V9';
         $gameModeLabel = $gameMode === '6S' ? 'Sixes (6v6)' : 'Highlander (9v9)';
 
-        $redPlayers = [];
-        $bluePlayers = [];
-        $otherPlayers = [];
-        $hasTeamData = false;
-
-        foreach ($players as $p) {
-            $team = $p['team'] ?? null;
-            if ($team === 'red') {
-                $redPlayers[] = $p;
-                $hasTeamData = true;
-            } elseif ($team === 'blue') {
-                $bluePlayers[] = $p;
-                $hasTeamData = true;
-            } else {
-                $otherPlayers[] = $p;
-            }
-        }
+        $partition = MatchFormat::partitionPlayers($players);
+        $redPlayers = $partition['red'];
+        $bluePlayers = $partition['blue'];
+        $otherPlayers = $partition['other'];
+        $hasTeamData = $partition['hasTeams'];
 
         $redScore = $log['red_score'];
         $blueScore = $log['blue_score'];
@@ -197,20 +186,22 @@ final class PageController extends Controller
         }
 
         foreach ($teamPanels as &$panel) {
-            $panel['result'] = self::teamResult($panel['score'], $panel['otherScore']);
+            $panel['result'] = MatchFormat::teamResult($panel['score'], $panel['otherScore']);
         }
         unset($panel);
 
+        $matchDate = $log['date'] !== null ? date('d/m/Y à H:i', $log['date']) : null;
+
         $this->view('pages/match-log', [
-            'title' => 'Highlander France - ' . self::mapDisplay((string)$log['map_name']) . ' | ' . $gameModeLabel,
+            'title' => 'Highlander France - ' . MatchFormat::mapDisplay((string)$log['map_name']) . ' | ' . $gameModeLabel,
             'description' => 'Highlander France est une communauté compétitive francophone de Team Fortress 2, offrant un espace pour les joueurs de tous niveaux pour apprendre, jouer et progresser ensemble.',
             'ogType' => 'article',
             'logId' => $logId,
-            'mapDisplay' => self::mapDisplay((string)$log['map_name']),
+            'mapDisplay' => MatchFormat::mapDisplay((string)$log['map_name']),
             'gameMode' => $gameMode,
             'gameModeLabel' => $gameModeLabel,
-            'matchDate' => $log['date'] !== null ? date('d/m/Y à H:i', $log['date']) : null,
-            'durationDisplay' => self::duration((int)$log['length']),
+            'matchDate' => $matchDate,
+            'durationDisplay' => MatchFormat::duration((int)$log['length']),
             'playerCount' => count($players),
             'hasTeamData' => $hasTeamData,
             'redScore' => $redScore,
@@ -221,49 +212,5 @@ final class PageController extends Controller
             'isAdmin' => Auth::isAdmin(),
             'pageScripts' => partial('partials/match_log_script', ['isAdmin' => Auth::isAdmin()]),
         ]);
-    }
-
-    private static function mapDisplay(string $raw): string
-    {
-        $raw = trim($raw);
-        if ($raw === '') {
-            return '—';
-        }
-
-        $names = [];
-        foreach (preg_split('/\s*\+\s*/', $raw) as $p) {
-            $p = preg_replace('/_(final|rc|v|b|f)\d*$/i', '', $p);
-            $p = preg_replace('/^(koth|cp|pl|plr|ctf|td|dom|tc|arena|mvm|sd|pass|rd|pd|vsh|ph|zr|dr|slay)_/i', '', $p);
-            $p = ucwords(preg_replace('/_/', ' ', trim($p)));
-            if ($p !== '') {
-                $names[] = $p;
-            }
-        }
-
-        return implode(' + ', $names);
-    }
-
-    private static function duration(int $seconds): ?string
-    {
-        if ($seconds <= 0) {
-            return null;
-        }
-
-        return sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
-    }
-
-    private static function teamResult(?int $score, ?int $otherScore): ?string
-    {
-        if ($score === null || $otherScore === null) {
-            return null;
-        }
-        if ($score > $otherScore) {
-            return 'win';
-        }
-        if ($score < $otherScore) {
-            return 'loss';
-        }
-
-        return 'draw';
     }
 }
