@@ -116,6 +116,32 @@ final class MatchLogRepository
     }
 
     /**
+     * Logs indexés (distincts, hors blacklist) pour le sitemap.
+     *
+     * @return array<int, array{id: int, date: int|null}>
+     */
+    public function sitemapLogs(): array
+    {
+        $stmt = $this->db->query("
+            SELECT DISTINCT pm.match_id AS id,
+                   (SELECT date FROM log_dates ld WHERE ld.log_id = pm.match_id) AS date
+            FROM player_matches pm
+            WHERE pm.match_id NOT IN (SELECT log_id FROM log_blacklist)
+            ORDER BY pm.match_id DESC
+        ");
+
+        $logs = [];
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $logs[] = [
+                'id' => (int)$row['id'],
+                'date' => $row['date'] !== null ? (int)$row['date'] : null,
+            ];
+        }
+
+        return $logs;
+    }
+
+    /**
      * Invalide le cache JSON des Match Stats.
      */
     public function invalidateLogsCache(): void

@@ -62,6 +62,18 @@ final class PlayerRepository
     }
 
     /**
+     * Tous les SteamID (format steamid3) des joueurs indexés, pour le sitemap.
+     *
+     * @return array<int, string>
+     */
+    public function allSteamIds(): array
+    {
+        return $this->db
+            ->query('SELECT steamid FROM players_info ORDER BY steamid ASC')
+            ->fetchAll(\PDO::FETCH_COLUMN);
+    }
+
+    /**
      * Insère le joueur s'il n'existe pas (idempotent).
      */
     public function createIfMissing(string $steamid3): void

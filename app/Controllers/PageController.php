@@ -91,6 +91,79 @@ final class PageController extends Controller
     }
 
     /**
+     * GET /sitemap.xml — sitemap dynamique (pages statiques + logs + profils).
+     */
+    public function sitemap(): void
+    {
+        $db = Database::connection();
+
+        $logs = (new MatchLogRepository($db))->sitemapLogs();
+        $players = (new PlayerRepository($db))->allSteamIds();
+
+        $base = site_url();
+
+        // Pages statiques : [path, priority, changefreq]
+        $staticPages = [
+            '/'               => [1.0, 'always'],
+            '/staff'          => [0.8, 'monthly'],
+            '/hall-of-fame'   => [0.8, 'daily'],
+            '/match-logs'     => [0.8, 'daily'],
+            '/confidentialite' => [0.3, 'yearly'],
+        ];
+
+        $block = static function (string $url, ?string $lastmod, float $priority, string $changefreq): string {
+            $out = "  <url>\n    <loc>" . e($url) . "</loc>\n";
+            if ($lastmod !== null) {
+                $out .= "    <lastmod>" . $lastmod . "</lastmod>\n";
+            }
+            $out .= "    <priority>" . rtrim(rtrim(number_format($priority, 1), '0'), '.') . "</priority>\n";
+            $out .= "    <changefreq>" . $changefreq . "</changefreq>\n  </url>";
+
+            return $out;
+        };
+
+        $lines = [];
+        foreach ($staticPages as $path => [$priority, $change]) {
+            $lines[] = $block($base . $path, null, $priority, $change);
+        }
+
+        // Dernier match comme référence de fraîcheur pour /match-logs et l'accueil.
+        $lastMatchDate = null;
+        if ($logs !== []) {
+            foreach ($logs as $log) {
+                if (is_int($log['date'])) {
+                    $lastMatchDate = $log['date'];
+                    break;
+                }
+            }
+        }
+
+        foreach ($logs as $log) {
+            $lastmod = null;
+            if (is_int($log['date']) && $log['date'] > 0) {
+                $lastmod = date('Y-m-d', $log['date']);
+            } elseif ($lastMatchDate !== null) {
+                $lastmod = date('Y-m-d', $lastMatchDate);
+            }
+            $lines[] = $block($base . '/log/' . $log['id'], $lastmod, 0.5, 'weekly');
+        }
+
+        foreach ($players as $steamid3) {
+            $steamid64 = SteamId::toSteamId64($steamid3);
+            if ($steamid64 === null) {
+                continue;
+            }
+            $lines[] = $block($base . '/profile/' . $steamid64, null, 0.4, 'monthly');
+        }
+
+        header('Content-Type: application/xml; charset=utf-8');
+        echo self::XML_DECL . implode("\n", $lines) . "\n</urlset>";
+    }
+
+    private const XML_DECL = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+    /**
      * Page d'un match en direct (GET /live/{server}).
      * Source : cache alimenté par le plugin hlfr_live_match.
      */

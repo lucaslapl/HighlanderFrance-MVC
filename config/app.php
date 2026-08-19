@@ -53,7 +53,9 @@ define('DATA_DIR', APP_ROOT . '/_scripts');
 
 define('APP_BASE_URL', rtrim((string)env('APP_URL', 'http://highlander-france-mvc.local'), '/'));
 
-define('DB_PATH', env('DB_PATH', DATA_DIR . '/stats.db'));
+// Valeur vide dans le .env => on utilise le défaut (ex. base SQLite à DATA_DIR).
+$dbPath = (string)env('DB_PATH', '');
+define('DB_PATH', $dbPath !== '' ? $dbPath : DATA_DIR . '/stats.db');
 
 define('SESSION_LIFETIME', 30 * 24 * 3600); // 30 jours
 define('SESSION_SAVE_PATH', APP_ROOT . '/_sessions');

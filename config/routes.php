@@ -23,6 +23,7 @@ $router->get('/match-logs', PageController::class, 'matchLogs');
 $router->get('/log/{id}', PageController::class, 'matchLog');
 $router->get('/log/match-log', PageController::class, 'matchLog');
 $router->get('/confidentialite', PageController::class, 'privacy');
+$router->get('/sitemap.xml', PageController::class, 'sitemap');
 
 // --- API JSON ---
 $router->get('/api/index-stats', ApiController::class, 'indexStats');
