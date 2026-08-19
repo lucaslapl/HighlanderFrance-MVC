@@ -139,24 +139,10 @@ final class AuthController extends Controller
      * (production) : évite l'injection de host / open redirect. Sinon on retombe
      * sur le host de la requête (dev WAMP sans .env), en ne faisant confiance au
      * header X-Forwarded-Proto que si un proxy est explicitement annoncé.
+     * cf. helper site_url() (config/autoload.php).
      */
     private function baseUrl(): string
     {
-        $configured = (string)env('APP_URL', '');
-
-        if ($configured !== '') {
-            return rtrim($configured, '/');
-        }
-
-        $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-
-        $host = (string)($_SERVER['HTTP_HOST'] ?? '');
-
-        if ($host === '') {
-            return APP_BASE_URL;
-        }
-
-        return ($https ? 'https' : 'http') . '://' . $host;
+        return site_url();
     }
 }

@@ -32,6 +32,24 @@ abstract class Controller
     }
 
     /**
+     * Enregistre un message flash d'erreur dans la session puis redirige.
+     */
+    protected function flashError(string $message, string $url): never
+    {
+        $_SESSION['error'] = $message;
+        $this->redirect($url);
+    }
+
+    /**
+     * Enregistre un message flash de succès dans la session puis redirige.
+     */
+    protected function flashSuccess(string $message, string $url): never
+    {
+        $_SESSION['success'] = $message;
+        $this->redirect($url);
+    }
+
+    /**
      * Répond avec une page d'erreur HTTP (400/403/404/405…).
      */
     protected function abort(int $code): never

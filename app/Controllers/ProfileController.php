@@ -104,37 +104,31 @@ final class ProfileController extends Controller
     public function updateName(): void
     {
         if (!Auth::isLoggedIn()) {
-            $_SESSION['error'] = "Action refusée : vous devez être connecté pour modifier votre nom d'affichage.";
-            $this->redirect('/');
+            $this->flashError("Action refusée : vous devez être connecté pour modifier votre nom d'affichage.", '/');
         }
 
         $steamid3 = SteamId::toSteamId3((string)Auth::steamId64());
         $newName = trim((string)$this->request->post('display_name', ''));
 
         if ($this->players->hasNameChanged($steamid3)) {
-            $_SESSION['error'] = "Vous avez déjà modifié votre nom d'affichage une fois. Action impossible.";
-            $this->redirect('/profile/dashboard');
+            $this->flashError("Vous avez déjà modifié votre nom d'affichage une fois. Action impossible.", '/profile/dashboard');
         }
 
         if ($newName === '') {
-            $_SESSION['error'] = "Le nom d'affichage ne peut pas être vide.";
-            $this->redirect('/profile/dashboard');
+            $this->flashError("Le nom d'affichage ne peut pas être vide.", '/profile/dashboard');
         }
 
         if (mb_strlen($newName) > 32) {
-            $_SESSION['error'] = "Le nom d'affichage ne doit pas dépasser 32 caractères.";
-            $this->redirect('/profile/dashboard');
+            $this->flashError("Le nom d'affichage ne doit pas dépasser 32 caractères.", '/profile/dashboard');
         }
 
         $newName = strip_tags($newName);
 
         if ($this->players->updateDisplayName($steamid3, $newName)) {
-            $_SESSION['success'] = "Votre nom d'affichage a été définitivement enregistré !";
-        } else {
-            $_SESSION['error'] = "Une erreur est survenue lors de l'enregistrement.";
+            $this->flashSuccess("Votre nom d'affichage a été définitivement enregistré !", '/profile/dashboard');
         }
 
-        $this->redirect('/profile/dashboard');
+        $this->flashError("Une erreur est survenue lors de l'enregistrement.", '/profile/dashboard');
     }
 
     /**
@@ -143,30 +137,25 @@ final class ProfileController extends Controller
     public function updateCountry(): void
     {
         if (!Auth::isLoggedIn()) {
-            $_SESSION['error'] = "Action refusée : vous devez être connecté pour modifier votre nationalité.";
-            $this->redirect('/');
+            $this->flashError("Action refusée : vous devez être connecté pour modifier votre nationalité.", '/');
         }
 
         $steamid3 = SteamId::toSteamId3((string)Auth::steamId64());
         $chosenCountry = strtolower(trim((string)$this->request->post('country', '')));
 
         if ($chosenCountry === '' || !in_array($chosenCountry, array_keys(COUNTRIES), true)) {
-            $_SESSION['error'] = 'Pays invalide.';
-            $this->redirect('/profile/dashboard');
+            $this->flashError('Pays invalide.', '/profile/dashboard');
         }
 
         if ($this->players->hasCountryLocked($steamid3)) {
-            $_SESSION['error'] = "Votre nationalité est déjà verrouillée et ne peut plus être modifiée.";
-            $this->redirect('/profile/dashboard');
+            $this->flashError("Votre nationalité est déjà verrouillée et ne peut plus être modifiée.", '/profile/dashboard');
         }
 
         if ($this->players->updateCountry($steamid3, $chosenCountry)) {
-            $_SESSION['success'] = "Votre nationalité a été enregistrée avec succès !";
-        } else {
-            $_SESSION['error'] = "Une erreur est survenue lors de l'enregistrement.";
+            $this->flashSuccess("Votre nationalité a été enregistrée avec succès !", '/profile/dashboard');
         }
 
-        $this->redirect('/profile/dashboard');
+        $this->flashError("Une erreur est survenue lors de l'enregistrement.", '/profile/dashboard');
     }
 
     /**
