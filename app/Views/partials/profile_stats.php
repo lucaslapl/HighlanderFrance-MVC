@@ -5,8 +5,8 @@
  */
 ?>
 <div class="profile-tabs">
-    <button type="button" class="profile-tab-btn active" onclick="switchProfileMode(this, '9v9'<?= $isOwnDashboard ? ', ' . json_encode($steamid64, JSON_UNESCAPED_SLASHES) : '' ?>)">Highlander (9v9)</button>
-    <button type="button" class="profile-tab-btn" onclick="switchProfileMode(this, '6s'<?= $isOwnDashboard ? ', ' . json_encode($steamid64, JSON_UNESCAPED_SLASHES) : '' ?>)">Sixes (6v6)</button>
+    <button type="button" class="profile-tab-btn active" onclick="switchProfileMode(this, '9v9', <?= json_encode($steamid64, JSON_UNESCAPED_SLASHES) ?>)">Highlander (9v9)</button>
+    <button type="button" class="profile-tab-btn" onclick="switchProfileMode(this, '6s', <?= json_encode($steamid64, JSON_UNESCAPED_SLASHES) ?>)">Sixes (6v6)</button>
 </div>
 
 <br>
