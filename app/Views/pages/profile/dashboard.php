@@ -61,7 +61,7 @@
 
     <?php if ($isLocked && !empty($country)): ?>
         <div class="flex align-center gap-10">
-            <img src="/_img/flags/<?= e($country) ?>.gif" alt="<?= e($countries[$country] ?? $country) ?>" class="flag-icon">
+            <img loading="lazy" decoding="async" src="/_img/flags/<?= e($country) ?>.gif" alt="<?= e($countries[$country] ?? $country) ?>" class="flag-icon">
             <span>Nationalité enregistrée : <strong><?= e($countries[$country] ?? strtoupper($country)) ?></strong></span>
         </div>
     <?php else: ?>

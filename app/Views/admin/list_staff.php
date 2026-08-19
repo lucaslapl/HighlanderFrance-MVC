@@ -33,7 +33,7 @@
             <?php foreach ($staff as $member): ?>
                 <tr>
                     <td>
-                        <img src="<?= e($member['avatar']) ?>" alt="Avatar" class="staff-avatar">
+                        <img loading="lazy" decoding="async" src="<?= e($member['avatar']) ?>" alt="Avatar" class="staff-avatar">
                         <strong style="color: #fff;"><?= e($member['final_name']) ?></strong>
                     </td>
 

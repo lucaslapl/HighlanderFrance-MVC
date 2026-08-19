@@ -106,7 +106,7 @@ function matchRowsHtml(array $players): string
         </span>
 
         <a href="https://logs.tf/<?= (int)$logId ?>" target="_blank" class="matchlog-logs-tf" rel="noopener">
-            <img src="/_img/logo-logstf.png" alt="Voir sur logs.tf" class="logs-tf-logo">
+            <img loading="lazy" decoding="async" src="/_img/logo-logstf.png" alt="Voir sur logs.tf" class="logs-tf-logo">
             Voir sur logs.tf
         </a>
     </div>

@@ -71,6 +71,18 @@ function e(?string $value): string
 }
 
 /**
+ * Chemin d'asset versionné (bust de cache par date de modification du fichier).
+ * Ex. : /_css/main.css?v=1724000000
+ */
+function asset(string $path): string
+{
+    $file = APP_ROOT . $path;
+    $version = is_file($file) ? (string)filemtime($file) : '0';
+
+    return $path . '?v=' . $version;
+}
+
+/**
  * Rend une vue partielle (retourne le HTML, ne l'affiche pas).
  */
 function partial(string $template, array $data = []): string

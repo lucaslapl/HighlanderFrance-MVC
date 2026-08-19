@@ -60,7 +60,7 @@
                             <?php $classNameBrut = e($class['class_played']); ?>
                             <li class="flex space-between align-center">
                                 <div class="flex align-center gap-10">
-                                    <img src="/_img/classes/<?= $classNameBrut ?>.png" alt="<?= ucfirst($classNameBrut) ?>" class="class-icon" title="<?= ucfirst($classNameBrut) ?>">
+                                    <img loading="lazy" decoding="async" src="/_img/classes/<?= $classNameBrut ?>.png" alt="<?= ucfirst($classNameBrut) ?>" class="class-icon" title="<?= ucfirst($classNameBrut) ?>">
                                 </div>
                                 <span class="stat-value"><?= (int)$class['total'] ?></span>
                             </li>
@@ -125,7 +125,7 @@
                             ?>
                             <tr class="match-row" data-href="/log/<?= $mId ?>">
                                 <td data-label="Classe">
-                                    <img src="/_img/classes/<?= $cPlayed ?>.png" alt="<?= ucfirst($cPlayed) ?>" class="class-icon" title="Joué en <?= ucfirst($cPlayed) ?>">
+                                    <img loading="lazy" decoding="async" src="/_img/classes/<?= $cPlayed ?>.png" alt="<?= ucfirst($cPlayed) ?>" class="class-icon" title="Joué en <?= ucfirst($cPlayed) ?>">
                                     <span><?= ucfirst($cPlayed) ?></span>
                                 </td>
                                 <td data-label="Résultat"><span class="match-result <?= $resultClass ?>"><?= $resultLabel ?></span></td>

@@ -23,8 +23,8 @@ $pageScripts = $pageScripts ?? '';
     <link rel="icon" type="image/png" sizes="16x16" href="https://highlanderfrance.tf/favicon-16x16.png">
     <link rel="apple-touch-icon" href="https://highlanderfrance.tf/apple-touch-icon.png">
 
-    <link rel="stylesheet" href="/_css/main.css">
-    <link rel="stylesheet" href="/_css/admin.css">
+    <link rel="stylesheet" href="<?= e(asset('/_css/main.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset('/_css/admin.css')) ?>">
     <?php foreach ($styles as $style): ?>
     <link rel="stylesheet" href="<?= e($style) ?>">
     <?php endforeach; ?>
@@ -60,7 +60,7 @@ $pageScripts = $pageScripts ?? '';
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://kit.fontawesome.com/2f306d349c.js" crossorigin="anonymous"></script>
-<script src="/_js/main.js"></script>
+<script src="<?= e(asset('/_js/main.js')) ?>" defer></script>
 <?= $pageScripts ?>
 <?php foreach ($scripts as $script): ?>
 <script src="<?= e($script) ?>"></script>

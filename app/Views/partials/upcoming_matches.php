@@ -32,7 +32,7 @@
                         <div class="teams-line flex align-center">
 
                             <span class="team-name text-right flex align-center justify-end gap-10">
-                                <img src="/_img/flags/<?= $flag1 ?>.gif" alt="<?= $flag1 ?>" class="team-flag" title="<?= ucfirst(e($match['team1_country'])) ?>">
+                                <img loading="lazy" decoding="async" src="/_img/flags/<?= $flag1 ?>.gif" alt="<?= $flag1 ?>" class="team-flag" title="<?= ucfirst(e($match['team1_country'])) ?>">
                                 <span class="truncate-text"><?= e($match['team1_name']) ?></span>
                             </span>
 
@@ -40,7 +40,7 @@
 
                             <span class="team-name text-left flex align-center gap-10">
                                 <span class="truncate-text"><?= e($match['team2_name']) ?></span>
-                                <img src="/_img/flags/<?= $flag2 ?>.gif" alt="<?= $flag2 ?>" class="team-flag" title="<?= ucfirst(e($match['team2_country'])) ?>">
+                                <img loading="lazy" decoding="async" src="/_img/flags/<?= $flag2 ?>.gif" alt="<?= $flag2 ?>" class="team-flag" title="<?= ucfirst(e($match['team2_country'])) ?>">
                             </span>
 
                         </div>

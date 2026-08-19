@@ -9,7 +9,7 @@
     <div class="staff-role flex space-around align-center wrap">
         <?php foreach ($groups['founders'] as $f): ?>
         <div class="staff-member">
-            <img src="<?= e($f['avatar']) ?>" alt="Avatar de <?= e($f['final_name']) ?>">
+            <img loading="lazy" decoding="async" src="<?= e($f['avatar']) ?>" alt="Avatar de <?= e($f['final_name']) ?>">
             <a href="<?= e($f['profile_url']) ?>">
                 <h4><?= e($f['final_name']) ?></h4>
             </a>
@@ -25,7 +25,7 @@
     <div class="staff-role flex space-around align-center wrap">
         <?php foreach ($groups['moderators'] as $m): ?>
         <div class="staff-member">
-            <img src="<?= e($m['avatar']) ?>" alt="Avatar de <?= e($m['final_name']) ?>">
+            <img loading="lazy" decoding="async" src="<?= e($m['avatar']) ?>" alt="Avatar de <?= e($m['final_name']) ?>">
             <a href="<?= e($m['profile_url']) ?>">
                 <h4><?= e($m['final_name']) ?></h4>
             </a>
@@ -46,7 +46,7 @@
                 <?php else: ?>
                     <?php foreach ($groups['mentors'] as $me): ?>
                     <div class="staff-member flex align-center">
-                        <img class="staff-pic" src="<?= e($me['avatar']) ?>" alt="Avatar de <?= e($me['final_name']) ?>">
+                        <img loading="lazy" decoding="async" class="staff-pic" src="<?= e($me['avatar']) ?>" alt="Avatar de <?= e($me['final_name']) ?>">
                         <a href="<?= e($me['profile_url']) ?>">
                             <h4><?= e($me['final_name']) ?></h4>
                         </a>
@@ -66,7 +66,7 @@
                 <?php else: ?>
                     <?php foreach ($groups['mixers'] as $mi): ?>
                     <div class="staff-member flex align-center">
-                        <img class="staff-pic" src="<?= e($mi['avatar']) ?>" alt="Avatar de <?= e($mi['final_name']) ?>">
+                        <img loading="lazy" decoding="async" class="staff-pic" src="<?= e($mi['avatar']) ?>" alt="Avatar de <?= e($mi['final_name']) ?>">
                         <a href="<?= e($mi['profile_url']) ?>">
                             <h4><?= e($mi['final_name']) ?></h4>
                         </a>
