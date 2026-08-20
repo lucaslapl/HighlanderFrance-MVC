@@ -22,6 +22,7 @@ $router->get('/hall-of-fame', PageController::class, 'hallOfFame');
 $router->get('/match-logs', PageController::class, 'matchLogs');
 $router->get('/log/{id}', PageController::class, 'matchLog');
 $router->get('/log/match-log', PageController::class, 'matchLog');
+$router->get('/match/{id}', PageController::class, 'etf2lMatch');
 $router->get('/confidentialite', PageController::class, 'privacy');
 $router->get('/sitemap.xml', PageController::class, 'sitemap');
 

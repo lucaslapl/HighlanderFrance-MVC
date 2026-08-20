@@ -33,6 +33,47 @@ final class Database
     {
         $db = self::$pdo;
 
+        // Table des équipes ETF2L (créée si absente, pour les rosters FR)
+        $db->exec("CREATE TABLE IF NOT EXISTS etf2l_teams (
+            team_id INTEGER PRIMARY KEY,
+            name    TEXT,
+            country TEXT,
+            tag     TEXT
+        )");
+
+        // Table des joueurs ETF2L (rosters des équipes FR)
+        $db->exec("CREATE TABLE IF NOT EXISTS etf2l_players (
+            team_id   INTEGER,
+            player_id INTEGER,
+            name      TEXT,
+            role      TEXT,
+            country   TEXT,
+            steamid64 TEXT,
+            PRIMARY KEY (team_id, player_id)
+        )");
+
+        // Ajout des colonnes IDs d'équipes sur les matchs (idempotent)
+        $matchCols = $db->query("PRAGMA table_info(etf2l_matches)")->fetchAll(\PDO::FETCH_ASSOC);
+        $existing = array_column($matchCols, 'name');
+        if (!in_array('team1_id', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN team1_id INTEGER DEFAULT NULL');
+        }
+        if (!in_array('team2_id', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN team2_id INTEGER DEFAULT NULL');
+        }
+        if (!in_array('maps', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN maps TEXT DEFAULT NULL');
+        }
+        if (!in_array('r1', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN r1 INTEGER DEFAULT NULL');
+        }
+        if (!in_array('r2', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN r2 INTEGER DEFAULT NULL');
+        }
+        if (!in_array('map_results', $existing, true)) {
+            $db->exec('ALTER TABLE etf2l_matches ADD COLUMN map_results TEXT DEFAULT NULL');
+        }
+
         // Table de blacklist des logs logs.tf
         $db->exec("CREATE TABLE IF NOT EXISTS log_blacklist (
             log_id     INTEGER PRIMARY KEY,

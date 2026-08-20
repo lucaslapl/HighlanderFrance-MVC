@@ -29,6 +29,75 @@ final class PageController extends Controller
         ]);
     }
 
+    /**
+     * Détail d'un match ETF2L (GET /match/{id}) avec les rosters des équipes.
+     */
+    public function etf2lMatch(): void
+    {
+        $matchId = (int)($this->request?->param('id', 0) ?? 0);
+
+        if ($matchId <= 0) {
+            $this->abort(404);
+        }
+
+        $repo = new Etf2lRepository(Database::connection());
+        $detail = $repo->etf2lMatchDetail($matchId);
+
+        if ($detail === null) {
+            $this->abort(404);
+        }
+
+        $match = $detail['match'];
+        $dt = new \DateTime('@' . (int)$match['match_date']);
+        $dt->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $teamNames = array_filter([
+            $match['team1_name'] ?? '',
+            $match['team2_name'] ?? '',
+        ]);
+        $matchTitle = implode(' VS ', $teamNames);
+        $description = 'Match ETF2L ' . e($match['competition_name'] ?? 'Highlander')
+            . ' : ' . $matchTitle . ' (' . $dt->format('d/m/Y à H:i') . '). '
+            . 'Consultez les rosters des deux équipes et les scores des maps.';
+
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'SportsEvent',
+            'name' => $matchTitle . ' - ' . ($match['competition_name'] ?? 'ETF2L'),
+            'description' => $description,
+            'startDate' => $dt->format('c'),
+            'eventStatus' => 'https://schema.org/EventScheduled',
+            'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
+            'url' => site_url() . '/match/' . (int)$match['match_id'],
+            'sport' => 'Team Fortress 2',
+            'location' => [
+                '@type' => 'Place',
+                'name' => 'ETF2L',
+                'url' => 'https://etf2l.org/matches/' . (int)$match['match_id'],
+            ],
+            'competitor' => array_map(static function (array $team): array {
+                return [
+                    '@type' => 'SportsTeam',
+                    'name' => $team['name'] ?? '',
+                    'member' => array_map(
+                        static fn(array $p): array => ['@type' => 'Person', 'name' => $p['name'] ?? ''],
+                        $team['players'] ?? []
+                    ),
+                ];
+            }, $detail['teams']),
+        ];
+
+        $this->view('pages/etf2l-match', [
+            'title' => 'Highlander France - ' . $matchTitle . ' | ETF2L',
+            'description' => $description,
+            'structuredData' => $structuredData,
+            'match' => $match,
+            'teams' => $detail['teams'],
+            'mapsData' => $detail['maps'],
+            'dateMatch' => $dt->format('d/m/Y'),
+            'heureMatch' => $dt->format('H:i'),
+        ]);
+    }
+
     public function staff(): void
     {
         $repo = new PlayerRepository(Database::connection());
@@ -99,6 +168,7 @@ final class PageController extends Controller
 
         $logs = (new MatchLogRepository($db))->sitemapLogs();
         $players = (new PlayerRepository($db))->allSteamIds();
+        $etf2lMatches = (new Etf2lRepository($db))->sitemapMatches();
 
         $base = site_url();
 
@@ -154,6 +224,14 @@ final class PageController extends Controller
                 continue;
             }
             $lines[] = $block($base . '/profile/' . $steamid64, null, 0.4, 'monthly');
+        }
+
+        // Matchs ETF2L à venir (contenu éphémère mais indexable tant qu'ils existent).
+        foreach ($etf2lMatches as $match) {
+            $lastmod = is_int($match['match_date']) && $match['match_date'] > 0
+                ? date('Y-m-d', (int)$match['match_date'])
+                : null;
+            $lines[] = $block($base . '/match/' . (int)$match['match_id'], $lastmod, 0.6, 'daily');
         }
 
         header('Content-Type: application/xml; charset=utf-8');

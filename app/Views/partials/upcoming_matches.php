@@ -1,4 +1,6 @@
-<?php /** @var array $prochainsMatchs */ ?>
+<?php /** @var array $prochainsMatchs */
+use App\Services\CountryFlags;
+?>
 <div class="etf2l-agenda-container">
     <div class="agenda-header flex space-between align-center">
         <h3><i class="fa-solid fa-calendar-days"></i> Matchs Équipes FR (ETF2L)</h3>
@@ -17,8 +19,8 @@
                 $dt->setTimezone(new DateTimeZone('Europe/Paris'));
                 $dateMatch = $dt->format('d/m');
                 $heureMatch = $dt->format('H:i');
-                $flag1 = ($match['team1_country'] === 'france') ? 'fr' : 'eu';
-                $flag2 = ($match['team2_country'] === 'france') ? 'fr' : 'eu';
+                $flag1 = CountryFlags::flag($match['team1_country'] ?? null);
+                $flag2 = CountryFlags::flag($match['team2_country'] ?? null);
                 ?>
                 <div class="agenda-item flex align-center">
 
@@ -32,7 +34,7 @@
                         <div class="teams-line flex align-center">
 
                             <span class="team-name text-right flex align-center justify-end gap-10">
-                                <img loading="lazy" decoding="async" src="/_img/flags/<?= $flag1 ?>.gif" alt="<?= $flag1 ?>" class="team-flag" title="<?= ucfirst(e($match['team1_country'])) ?>">
+                                <img loading="lazy" decoding="async" src="<?= e($flag1) ?>" alt="<?= ucfirst(e($match['team1_country'])) ?>" class="team-flag" title="<?= ucfirst(e($match['team1_country'])) ?>">
                                 <span class="truncate-text"><?= e($match['team1_name']) ?></span>
                             </span>
 
@@ -40,14 +42,14 @@
 
                             <span class="team-name text-left flex align-center gap-10">
                                 <span class="truncate-text"><?= e($match['team2_name']) ?></span>
-                                <img loading="lazy" decoding="async" src="/_img/flags/<?= $flag2 ?>.gif" alt="<?= $flag2 ?>" class="team-flag" title="<?= ucfirst(e($match['team2_country'])) ?>">
+                                <img loading="lazy" decoding="async" src="<?= e($flag2) ?>" alt="<?= ucfirst(e($match['team2_country'])) ?>" class="team-flag" title="<?= ucfirst(e($match['team2_country'])) ?>">
                             </span>
 
                         </div>
                     </div>
 
                     <div class="match-action">
-                        <a href="https://etf2l.org/matches/<?= (int)$match['match_id'] ?>" target="_blank" class="btn-match-link" title="Voir sur ETF2L">
+                        <a href="/match/<?= (int)$match['match_id'] ?>" class="btn-match-link" title="Voir le match et les rosters">
                             <i class="fa-solid fa-chevron-right"></i>
                         </a>
                     </div>

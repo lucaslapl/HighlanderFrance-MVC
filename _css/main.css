@@ -1614,3 +1614,199 @@ body #header nav .nav-content .nav-live-badge[hidden] {
     display: none;
   }
 }
+
+/* --- Page match ETF2L (rosters) --- */
+.etf2l-match-header {
+  background: rgba(0, 0, 0, 0.7098039216);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+.etf2l-match-header .matchlog-back {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 15px;
+  transition: color 0.2s;
+}
+.etf2l-match-header .matchlog-back:hover {
+  color: #fbb7fb;
+}
+.etf2l-match-title h1 {
+  margin: 0;
+  font-size: 24px;
+}
+.etf2l-match-title .vs-separator {
+  color: #fbb7fb;
+  font-size: 16px;
+}
+.etf2l-match-header .btn-match-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fbb7fb;
+  text-decoration: none;
+  font-size: 14px;
+}
+.etf2l-match-header .matchlog-meta {
+  margin-top: 15px;
+  justify-content: space-between;
+  gap: 12px 25px;
+}
+.etf2l-match-header .matchlog-meta .matchlog-meta-item {
+  display: inline-flex;
+  align-items: center;
+  color: #ccc;
+  font-size: 14px;
+}
+.etf2l-match-header .matchlog-meta .matchlog-meta-item i {
+  margin-right: 7px;
+  color: #fbb7fb;
+}
+
+.etf2l-roster-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: start;
+}
+.etf2l-roster-panel {
+  background: rgba(0, 0, 0, 0.5411764706);
+  border-radius: 8px;
+  padding: 18px;
+  border-top: 3px solid #7a3e8a;
+}
+
+/* --- Cartes & scores du match ETF2L --- */
+.etf2l-maps-panel {
+  background: rgba(0, 0, 0, 0.5411764706);
+  border-radius: 8px;
+  padding: 18px;
+  margin-bottom: 25px;
+}
+.etf2l-maps-head {
+  margin-bottom: 12px;
+  font-size: 16px;
+  justify-content: center;
+  text-align: center;
+}
+.etf2l-maps-head .team-name {
+  color: #fbb7fb;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.etf2l-maps-head .vs-separator {
+  color: #999;
+  font-size: 13px;
+}
+.etf2l-maps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.etf2l-map-row {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.etf2l-map-row .etf2l-map-label {
+  flex: 1;
+  color: #ddd;
+  font-size: 15px;
+}
+.etf2l-map-row .etf2l-map-label b {
+  color: #fbb7fb;
+}
+.etf2l-map-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+}
+.etf2l-map-score .score-sep {
+  color: #999;
+}
+.etf2l-map-pending {
+  color: #999;
+  font-weight: normal;
+  font-size: 13px;
+}
+.badge-gc {
+  background: #2b6cb0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.etf2l-map-total {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.etf2l-map-total .etf2l-map-label b {
+  color: #fff;
+}
+.etf2l-roster-panel .etf2l-roster-head {
+  margin-bottom: 14px;
+}
+.etf2l-roster-panel .etf2l-roster-head .team-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fbb7fb;
+}
+.etf2l-roster-panel .team-flag {
+  width: 22px;
+  vertical-align: middle;
+}
+.etf2l-roster-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.etf2l-roster-item {
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.etf2l-roster-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.etf2l-roster-item .team-flag {
+  width: 18px;
+  flex-shrink: 0;
+}
+.etf2l-roster-item .roster-player-link {
+  color: #eee;
+  text-decoration: none;
+  font-size: 15px;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.etf2l-roster-item .roster-player-link:hover {
+  color: #fbb7fb;
+}
+.etf2l-roster-item .roster-player-role {
+  color: #999;
+  font-size: 12px;
+  text-transform: capitalize;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+@media all and (max-width: 870px) {
+  .etf2l-roster-grid {
+    grid-template-columns: 1fr;
+  }
+}

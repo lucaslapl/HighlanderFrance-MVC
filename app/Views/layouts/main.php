@@ -11,6 +11,7 @@ $scripts = $scripts ?? [];
 $pageScripts = $pageScripts ?? '';
 $ogType = $ogType ?? 'website';
 $ogImage = $ogImage ?? site_url() . '/_img/meta-bg-hlfr.jpg';
+$structuredData = $structuredData ?? null;
 $canonical = canonical_url();
 $currentUrl = current_url();
 ?>
@@ -53,6 +54,11 @@ $currentUrl = current_url();
         "inLanguage": "fr"
     }
     </script>
+    <?php if (!empty($structuredData)): ?>
+    <script type="application/ld+json">
+        <?= json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+    </script>
+    <?php endif; ?>
 
     <!-- Favicon standard -->
     <link rel="shortcut icon" href="<?= e(site_url()) ?>/favicon.ico">
