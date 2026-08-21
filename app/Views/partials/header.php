@@ -17,30 +17,37 @@ $isLoggedIn = Auth::isLoggedIn();
             </h1>
         </div>
     </div>
+</header>
 
-    <nav id="nav">
-        <div class="nav-content flex space-between align-center">
-            <button class="burger-menu" id="burgerToggle" aria-label="Ouvrir le menu">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
+<nav id="nav" aria-label="Navigation principale">
+    <div class="nav-content">
+        <button class="burger-menu" id="burgerToggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
 
-            <ul class="nav-links flex justify-center align-center">
+        <a href="/index" class="nav-brand" aria-label="Highlander France — Retour à l'accueil">
+            <img src="/_img/hf.webp" alt="" width="40" height="40">
+        </a>
+
+        <a href="/live" id="liveNavBadge" class="nav-live-badge" hidden>
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-text">EN DIRECT</span>
+            <span class="live-map" id="liveNavMap"></span>
+            <i class="fa-solid fa-chevron-right live-chevron" aria-hidden="true"></i>
+        </a>
+
+        <div class="nav-menu" id="nav-menu">
+            <ul class="nav-links">
                 <li><a href="/index" class="<?= $currentPath === '/' ? 'active' : '' ?>">Accueil</a></li>
                 <li><a href="/staff" class="<?= $currentPath === '/staff' ? 'active' : '' ?>">L'équipe</a></li>
                 <li><a href="/hall-of-fame" class="<?= $currentPath === '/hall-of-fame' ? 'active' : '' ?>">Hall of Fame</a></li>
                 <li><a href="/match-logs" class="<?= $currentPath === '/match-logs' ? 'active' : '' ?>">Match Stats</a></li>
             </ul>
 
-            <a href="/live" id="liveNavBadge" class="nav-live-badge" hidden>
-                <span class="live-dot" aria-hidden="true"></span>
-                <span class="live-text">EN DIRECT</span>
-                <span class="live-map" id="liveNavMap"></span>
-                <i class="fa-solid fa-chevron-right live-chevron" aria-hidden="true"></i>
-            </a>
-            <div class="nav-right flex justify-center align-center">
-                <div id="session-profile" class="flex justify-center align-center">
+            <div class="nav-right">
+                <div id="session-profile">
                     <?php if ($isLoggedIn): ?>
                         <a href="/profile/dashboard" class="<?= $currentPath === '/profile/dashboard' ? 'active' : '' ?>">Mon Profil</a>
                         <a href="/logout">Déconnexion</a>
@@ -51,10 +58,11 @@ $isLoggedIn = Auth::isLoggedIn();
                         </a>
                     <?php endif; ?>
                 </div>
-                <a class="nav-discord discord-link" href="https://discord.gg/BMuj3cqUFt">
-                    <i class="fa-brands fa-discord"></i> Discord
+                <a class="nav-discord discord-link" href="https://discord.gg/BMuj3cqUFt" target="_blank" rel="noopener">
+                    <i class="fa-brands fa-discord" aria-hidden="true"></i>
+                    <span class="discord-label">Discord</span>
                 </a>
             </div>
         </div>
-    </nav>
-</header>
+    </div>
+</nav>

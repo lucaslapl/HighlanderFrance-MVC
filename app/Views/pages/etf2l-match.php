@@ -1,9 +1,19 @@
 <?php
 /**
  * Détail d'un match ETF2L avec les rosters des équipes.
- * Variables attendues : $match, $teams, $mapsData, $dateMatch, $heureMatch.
+ * Variables attendues : $match, $teams, $mapsData, $result1, $result2, $dateMatch, $heureMatch.
  */
 use App\Services\CountryFlags;
+
+/** Badge Vainqueur/Perdant/Égalité ("win"|"loss"|"draw"|null). */
+$resultBadge = static function (?string $result): string {
+    if ($result === null) {
+        return '';
+    }
+    $label = $result === 'win' ? 'Vainqueur' : ($result === 'loss' ? 'Perdant' : 'Égalité');
+
+    return '<span class="team-result result-' . e($result) . '">' . e($label) . '</span>';
+};
 ?>
 <div class="etf2l-match-header">
 
@@ -40,7 +50,9 @@ use App\Services\CountryFlags;
 <div class="etf2l-maps-panel">
     <div class="etf2l-maps-head flex align-center gap-10">
         <span class="team-name"><?= e($match['team1_name']) ?></span>
+        <?= $resultBadge($result1 ?? null) ?>
         <span class="vs-separator">VS</span>
+        <?= $resultBadge($result2 ?? null) ?>
         <span class="team-name"><?= e($match['team2_name']) ?></span>
     </div>
 
@@ -87,6 +99,7 @@ use App\Services\CountryFlags;
                 <?php $flag = CountryFlags::flag($team['country'] ?? null); ?>
                 <img loading="lazy" decoding="async" src="<?= e($flag) ?>" alt="<?= e($team['country'] ?? '') ?>" class="team-flag" title="<?= e($team['country'] ?? '') ?>">
                 <span class="team-name"><?= e($team['name']) ?></span>
+                <?= $resultBadge(($team['key'] ?? '') === 'team1' ? ($result1 ?? null) : ($result2 ?? null)) ?>
                 <?php if (!empty($team['tag'])): ?>
                     <span class="badge-live-info">[<?= e($team['tag']) ?>]</span>
                 <?php endif; ?>

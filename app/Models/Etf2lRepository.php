@@ -31,6 +31,29 @@ final class Etf2lRepository
     }
 
     /**
+     * Matchs terminés depuis moins de $hours heures (fenêtre de 48 h par
+     * défaut), du plus récent au plus ancien : résultats encore affichés
+     * sur la page d'accueil.
+     */
+    public function recentlyFinishedMatches(int $hours = 48, int $limit = 5): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM etf2l_matches
+            WHERE match_date < :current_time
+              AND match_date >= :window_start
+            ORDER BY match_date DESC, match_id DESC
+            LIMIT " . (int)$limit
+        );
+        $stmt->execute([
+            ':current_time' => time(),
+            ':window_start' => time() - $hours * 3600,
+        ]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Matchs ETF2L pour le sitemap (id + horodatage).
      *
      * @return array<int, array{match_id: int, match_date: int}>
@@ -40,6 +63,33 @@ final class Etf2lRepository
         return $this->db
             ->query('SELECT match_id, match_date FROM etf2l_matches ORDER BY match_date ASC')
             ->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Matchs passés des équipes FR, du plus récent au plus ancien (paginé).
+     */
+    public function pastMatches(int $limit = 20, int $offset = 0): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM etf2l_matches
+            WHERE match_date < :current_time
+            ORDER BY match_date DESC, match_id DESC
+            LIMIT " . (int)$limit . " OFFSET " . (int)$offset
+        );
+        $stmt->execute([':current_time' => time()]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Nombre total de matchs passés des équipes FR.
+     */
+    public function countPastMatches(): int
+    {
+        return (int)$this->db
+            ->query('SELECT COUNT(*) FROM etf2l_matches WHERE match_date < ' . (int)time())
+            ->fetchColumn();
     }
 
     /**

@@ -20,11 +20,13 @@ final class PageController extends Controller
     {
         $repo = new Etf2lRepository(Database::connection());
         $prochainsMatchs = $repo->upcomingMatches(5);
+        $matchsRecents = $repo->recentlyFinishedMatches(48, 5);
 
         $this->view('pages/home', [
             'title' => 'Highlander France - Communauté Compétitive de TF2',
             'description' => site_description(),
             'prochainsMatchs' => $prochainsMatchs,
+            'matchsRecents' => $matchsRecents,
             'pageScripts' => partial('partials/index_stats_script'),
         ]);
     }
@@ -93,8 +95,41 @@ final class PageController extends Controller
             'match' => $match,
             'teams' => $detail['teams'],
             'mapsData' => $detail['maps'],
+            'result1' => MatchFormat::teamResult(
+                isset($detail['maps']['r1']) ? (int)$detail['maps']['r1'] : null,
+                isset($detail['maps']['r2']) ? (int)$detail['maps']['r2'] : null
+            ),
+            'result2' => MatchFormat::teamResult(
+                isset($detail['maps']['r2']) ? (int)$detail['maps']['r2'] : null,
+                isset($detail['maps']['r1']) ? (int)$detail['maps']['r1'] : null
+            ),
             'dateMatch' => $dt->format('d/m/Y'),
             'heureMatch' => $dt->format('H:i'),
+        ]);
+    }
+
+    /**
+     * Historique des matchs passés des équipes FR (GET /matchs).
+     */
+    public function etf2lMatches(): void
+    {
+        $perPage = 20;
+        $page = max(1, (int)($this->request?->get('page', 1) ?? 1));
+
+        $repo = new Etf2lRepository(Database::connection());
+        $total = $repo->countPastMatches();
+        $totalPages = max(1, (int)ceil($total / $perPage));
+        $page = min($page, $totalPages);
+
+        $matches = $repo->pastMatches($perPage, ($page - 1) * $perPage);
+
+        $this->view('pages/etf2l-matches', [
+            'title' => 'Highlander France - Matchs des équipes FR | ETF2L',
+            'description' => 'Historique des matchs ETF2L des équipes françaises : scores par carte, résultats et rosters.',
+            'matches' => $matches,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalMatches' => $total,
         ]);
     }
 
@@ -178,6 +213,7 @@ final class PageController extends Controller
             '/staff'          => [0.8, 'monthly'],
             '/hall-of-fame'   => [0.8, 'daily'],
             '/match-logs'     => [0.8, 'daily'],
+            '/matchs'         => [0.8, 'daily'],
             '/confidentialite' => [0.3, 'yearly'],
         ];
 

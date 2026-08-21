@@ -9,6 +9,10 @@ Le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 ### Ajouté
 - `sitemap.xml` avec les nouvelles routes propres (`.php` supprimés).
 - `LICENSE` (tous droits réservés).
+- Accueil : les matchs ETF2L terminés depuis moins de 48 h restent affichés
+  dans l'encadré de l'agenda (version compacte) avec leur score, un dégradé
+  vert côté vainqueur / rouge côté perdant, et un lien vers le détail du
+  match.
 
 ### Modifié
 - `robots.txt` : référence le sitemap.

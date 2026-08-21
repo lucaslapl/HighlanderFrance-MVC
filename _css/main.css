@@ -163,6 +163,9 @@ body {
   font-family: "Montserrat";
   scroll-behavior: smooth;
 }
+:root {
+  --nav-height: 60px;
+}
 body #header {
   /**background: linear-gradient(90deg, rgba(0, 0, 0, 1) 5%,rgba(0, 0, 0, .8) 10%,rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .8) 90%, rgba(0, 0, 0, 1) 95%),url("../_img/suijin.png");**/
   background-image: url("../_img/sulfur1.png");
@@ -171,7 +174,8 @@ body #header {
   background-position: bottom;
   text-align: center;
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - var(--nav-height));
+  height: calc(100svh - var(--nav-height));
 }
 body #header .head-content {
   width: 1200px;
@@ -200,80 +204,129 @@ body #header .header-logo {
   height: 80px;
   margin: 0 16px;
 }
-body #header nav {
-  background: linear-gradient(205deg, rgb(72, 30, 71) 8%, rgba(0, 0, 0, 0.79) 57%, rgb(78, 14, 73) 100%);
-  padding: 5px 35px;
+body #nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: linear-gradient(205deg, rgb(72, 30, 71) 8%, rgba(16, 8, 20, 0.92) 57%, rgb(78, 14, 73) 100%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+body #nav .nav-content {
   box-sizing: border-box;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-}
-body #header nav .nav-content {
-  width: 1200px;
+  max-width: 1200px;
   margin: 0 auto;
+  height: var(--nav-height);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-body #header nav .nav-content .burger-menu {
+body #nav .nav-brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+body #nav .nav-brand img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+}
+body #nav .nav-brand:hover img {
+  transform: scale(1.08);
+}
+body #nav .burger-menu {
   display: none;
+  position: relative;
   flex-direction: column;
-  justify-content: space-between;
-  width: 30px;
-  height: 21px;
+  justify-content: center;
+  gap: 5px;
+  width: 42px;
+  height: 42px;
+  padding: 0 9px;
   background: transparent;
   border: none;
+  border-radius: 10px;
   cursor: pointer;
-  z-index: 10;
-  padding: 0;
 }
-body #header nav .nav-content .burger-menu .bar {
-  height: 3px;
+body #nav .burger-menu .bar {
+  display: block;
+  height: 2px;
   width: 100%;
   background-color: white;
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  border-radius: 2px;
+  transition: transform 0.3s ease, opacity 0.2s ease;
 }
-body #header nav .nav-content ul {
+body #nav .burger-menu:hover {
+  background-color: rgba(251, 183, 251, 0.12);
+}
+body #nav .burger-menu.open .bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+body #nav .burger-menu.open .bar:nth-child(2) {
+  opacity: 0;
+}
+body #nav .burger-menu.open .bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+body #nav .nav-menu {
+  display: contents;
+}
+body #nav .nav-links {
+  order: 1;
   list-style: none;
   padding: 0;
-  gap: 15px;
+  margin: 0;
+  gap: 4px;
+  display: flex;
+  align-items: center;
   text-wrap: nowrap;
 }
-body #header nav .nav-content ul li a {
+body #nav .nav-links li a,
+body #nav .nav-right #session-profile a {
+  display: block;
   text-decoration: none;
-  font-weight: bold;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: 0.3s;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 9px 14px;
+  border-radius: 10px;
+  transition: background-color 0.25s, color 0.25s;
 }
-body #header nav .nav-content ul li a:hover {
-  background-color: #fbb7fb;
-  color: #000;
+body #nav .nav-links li a:hover,
+body #nav .nav-right #session-profile a:hover {
+  background-color: rgba(251, 183, 251, 0.12);
+  color: #fff;
 }
-body #header nav .nav-content ul li .active {
-  border-bottom: 3px solid rgba(255, 98, 194, 0.431372549);
+body #nav .nav-links li a.active,
+body #nav .nav-right #session-profile a.active {
+  background-color: rgba(255, 98, 194, 0.18);
+  color: #ffc9ec;
 }
-body #header nav .nav-content .nav-right {
-  gap: 15px;
-  padding: 10px 0;
+body #nav .nav-live-badge {
+  order: 2;
 }
-body #header nav .nav-content .nav-right #session-profile {
-  margin: 10px 0;
+body #nav .nav-live-badge:not([hidden]) {
+  margin-left: auto;
 }
-body #header nav .nav-content .nav-right #session-profile a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 8px;
-  transition: 0.3s;
+body #nav .nav-right {
+  order: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
-body #header nav .nav-content .nav-right #session-profile a:hover {
-  color: #fbb7fb;
+body #nav .nav-live-badge:not([hidden]) ~ .nav-menu .nav-right {
+  margin-left: 0;
 }
-body #header nav .nav-content .nav-right #session-profile .active {
-  border-bottom: 3px solid rgba(255, 98, 194, 0.431372549);
+body #nav .nav-right #session-profile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-body #header nav .nav-content .nav-right #session-profile .btn-steam-login {
+body #nav .nav-right #session-profile .btn-steam-login {
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -281,7 +334,7 @@ body #header nav .nav-content .nav-right #session-profile .btn-steam-login {
   color: #fff;
   text-decoration: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-family: "Motiva Sans", Sans-Serif, Arial;
   font-weight: 600;
   font-size: 0.95em;
@@ -291,27 +344,51 @@ body #header nav .nav-content .nav-right #session-profile .btn-steam-login {
   cursor: pointer;
   transition: all 0.25s ease-in-out;
 }
-body #header nav .nav-content .nav-right #session-profile .btn-steam-login:hover {
+body #nav .nav-right #session-profile .btn-steam-login:hover {
   background: linear-gradient(135deg, #1c212c 0%, #293244 100%);
   border-color: rgba(102, 192, 244, 0.4);
   color: #fff;
 }
-body #header nav .nav-content .nav-right #session-profile .btn-steam-login:active {
+body #nav .nav-right #session-profile .btn-steam-login:active {
   transform: translateY(1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
-body #header nav .nav-discord {
+body #nav .nav-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   text-decoration: none;
-  font-weight: bold;
-  color: white;
-  background-color: #566ab3;
-  padding: 13px;
-  transition: 0.3s;
-  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #fff;
+  background-color: #5865f2;
+  padding: 9px 18px;
+  border-radius: 999px;
+  transition: background-color 0.25s, transform 0.25s;
 }
-body #header nav .nav-discord:hover {
-  background-color: #fbb7fb;
-  color: #000;
+body #nav .nav-discord:hover {
+  background-color: #6b75f5;
+  color: #fff;
+  transform: translateY(-1px);
+}
+body #nav .nav-links li a:focus-visible,
+body #nav .nav-right #session-profile a:focus-visible,
+body #nav .nav-discord:focus-visible,
+body #nav .burger-menu:focus-visible {
+  outline: 2px solid #fbb7fb;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  body #nav .burger-menu .bar,
+  body #nav .nav-links li a,
+  body #nav .nav-right #session-profile a,
+  body #nav .nav-discord,
+  body #nav .nav-brand img {
+    transition: none;
+  }
+  body #nav .nav-menu {
+    transition: none;
+  }
 }
 body #main {
   width: 1200px;
@@ -638,6 +715,133 @@ body #main #content #join a:hover {
   padding: 30px;
   color: #666;
   font-style: italic;
+}
+
+/* --- Lien "tous les matchs passés" (pied de l'agenda) --- */
+.agenda-footer {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.agenda-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid #38193d;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fbb7fb;
+  font-size: 0.85em;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.agenda-footer-link:hover {
+  background: #fbb7fb;
+  color: #fff;
+}
+
+/* Score dans les listes de matchs (historique) */
+.agenda-score {
+  width: 10%;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1em;
+}
+.agenda-score .score-sep {
+  color: #999;
+}
+.agenda-score .score-winner {
+  color: #fbb7fb;
+}
+
+.team-name.winner {
+  color: #fff;
+  font-weight: bold;
+}
+
+/* --- Résultats récents (48 h) : version compacte dans l'agenda --- */
+.agenda-recent {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(251, 183, 251, 0.25);
+}
+
+.agenda-subtitle {
+  font-size: 0.72em;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.agenda-subtitle i {
+  margin-right: 6px;
+  color: #fbb7fb;
+}
+
+.agenda-item-compact {
+  padding: 6px 12px;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+}
+
+.agenda-item-compact .match-date-box {
+  min-width: 50px;
+  padding: 3px 8px;
+  border-left-width: 2px;
+}
+
+.agenda-item-compact .match-date {
+  font-size: 0.9em;
+}
+
+.agenda-item-compact .match-hour {
+  font-size: 0.75em;
+}
+
+.agenda-item-compact .btn-match-link {
+  width: 26px;
+  height: 26px;
+}
+
+/* Dégradés : vert côté vainqueur, rouge côté perdant */
+.agenda-item-compact.res-win1 {
+  background: linear-gradient(to right, rgba(46, 204, 113, 0.16), rgba(46, 204, 113, 0.03) 45%, rgba(231, 76, 60, 0.03) 55%, rgba(231, 76, 60, 0.16));
+}
+
+.agenda-item-compact.res-win2 {
+  background: linear-gradient(to right, rgba(231, 76, 60, 0.16), rgba(231, 76, 60, 0.03) 45%, rgba(46, 204, 113, 0.03) 55%, rgba(46, 204, 113, 0.16));
+}
+
+.agenda-item-compact.res-draw {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+}
+
+/* Le hover par défaut écrase le fond : on réapplique le dégradé, renforcé */
+.agenda-item-compact.res-win1:hover {
+  background: linear-gradient(to right, rgba(46, 204, 113, 0.26), rgba(46, 204, 113, 0.05) 45%, rgba(231, 76, 60, 0.05) 55%, rgba(231, 76, 60, 0.26));
+}
+
+.agenda-item-compact.res-win2:hover {
+  background: linear-gradient(to right, rgba(231, 76, 60, 0.26), rgba(231, 76, 60, 0.05) 45%, rgba(46, 204, 113, 0.05) 55%, rgba(46, 204, 113, 0.26));
+}
+
+.agenda-item-compact.res-draw:hover {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+}
+
+.agenda-item-compact .score-win {
+  color: #2ecc71;
+}
+
+.agenda-item-compact .score-loss {
+  color: #e74c3c;
 }
 
 /**** STAFF PAGE ****/
@@ -1030,74 +1234,90 @@ footer a {
 
 /***** MEDIA QUERIES *****/
 @media all and (max-width: 1290px) {
-  body #header .head-content,
-  body #header nav .nav-content {
+  body #header .head-content {
     width: 95%;
   }
   body #main {
     width: 100%;
   }
 }
-@media all and (max-width: 1040px) {
-  body #header nav .nav-content .nav-right {
-    flex-direction: column;
-    gap: 10px;
+@media all and (max-width: 1040px) and (min-width: 871px) {
+  body #nav .nav-content {
+    gap: 6px;
+    padding: 0 14px;
+  }
+  body #nav .nav-links li a,
+  body #nav .nav-right #session-profile a {
+    padding: 9px 10px;
+  }
+  body #nav .nav-discord {
+    padding: 9px 12px;
+  }
+  body #nav .discord-label {
+    display: none;
   }
 }
 @media all and (max-width: 870px) {
-  body #header nav {
-    padding: 25px 35px;
+  body #nav .nav-content {
+    position: relative;
+    padding: 0 12px;
+    gap: 8px;
   }
-  body #header nav .nav-content .burger-menu {
-    display: flex;
-    z-index: 101;
+  body #nav .burger-menu {
+    display: inline-flex;
   }
-  body #header nav .nav-content .burger-menu.open {
-    position: fixed;
-    top: 40px;
+  body #nav .nav-live-badge {
+    margin-left: auto;
   }
-  body #header nav .nav-content .burger-menu.open .bar:nth-child(1) {
-    transform: translateY(9px) rotate(45deg);
-  }
-  body #header nav .nav-content .burger-menu.open .bar:nth-child(2) {
-    opacity: 0;
-  }
-  body #header nav .nav-content .burger-menu.open .bar:nth-child(3) {
-    transform: translateY(-9px) rotate(-45deg);
-  }
-  body #header nav .nav-content .nav-links {
-    display: none; /* Caché par défaut sur mobile */
-    flex-direction: column;
-    justify-content: start;
-    position: fixed;
-    top: -20px; /* À ajuster selon la hauteur réelle de ta nav */
-    left: 0;
-    width: 100%;
-    height: 100vh;
-    background-color: rgb(55, 34, 58);
-    padding: 75px 0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-  }
-  body #header nav .nav-content .nav-links li {
-    margin: 10px 0;
-    text-align: center;
-  }
-  body #header nav .nav-content .nav-links li a {
-    font-size: 1.2em;
-    padding: 10px 20px;
+  body #nav .nav-menu {
     display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    background: linear-gradient(205deg, rgb(58, 24, 58) 0%, rgb(24, 12, 28) 55%, rgb(64, 12, 60) 100%);
+    border-bottom: 1px solid rgba(251, 183, 251, 0.15);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.45);
+    transition: max-height 0.35s ease, visibility 0s linear 0.35s;
   }
-  body #header nav .nav-content .nav-right {
-    display: none; /* Caché sur mobile */
-    z-index: 100;
-    position: fixed;
-    top: 473px;
-    left: 85px;
+  body #nav .nav-menu.open {
+    max-height: calc(100vh - var(--nav-height));
+    max-height: calc(100dvh - var(--nav-height));
+    overflow-y: auto;
+    visibility: visible;
+    transition: max-height 0.35s ease;
   }
-  body #header nav .nav-content .nav-links.open,
-  body #header nav .nav-content .nav-right.open {
-    display: flex; /* Affiché lorsque le menu est ouvert */
+  body #nav .nav-links {
+    order: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 10px 14px;
+  }
+  body #nav .nav-links li a,
+  body #nav .nav-right #session-profile a {
+    font-size: 1.05em;
+    padding: 13px 16px;
+  }
+  body #nav .nav-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-left: 0;
+    padding: 14px 14px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  body #nav .nav-right #session-profile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+  }
+  body #nav .nav-right #session-profile .btn-steam-login,
+  body #nav .nav-discord {
+    justify-content: center;
   }
   body #header .embed {
     position: relative;
@@ -1121,16 +1341,6 @@ footer a {
   }
 }
 @media all and (max-width: 726px) {
-  body #header nav {
-    padding: 20px 50px;
-  }
-  body #header nav .nav-content {
-    width: 100%;
-  }
-  body #header nav .nav-content ul {
-    gap: 5px;
-    width: auto;
-  }
   body #main #content #questions {
     width: 100%;
   }
@@ -1169,10 +1379,6 @@ footer a {
   }
 }
 @media all and (max-width: 560px) {
-  body #header nav .nav-content ul {
-    flex-direction: column;
-    gap: 40px;
-  }
   /* Agenda des prochains matchs (page d'accueil) : passage en colonnes */
   .etf2l-agenda-container {
     padding: 15px;
@@ -1228,6 +1434,19 @@ footer a {
   transition: color 0.2s;
 }
 .matchlog-header .matchlog-back:hover {
+  color: #fbb7fb;
+}
+.matchlog-back-wrap {
+  margin-bottom: 20px;
+}
+.matchlog-back-wrap .matchlog-back {
+  display: inline-block;
+  color: #999;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.matchlog-back-wrap .matchlog-back:hover {
   color: #fbb7fb;
 }
 .matchlog-header .matchlog-title h2 {
@@ -1484,7 +1703,7 @@ footer a {
 /***** MATCH EN DIRECT *****/
 
 /* Badge "EN DIRECT" de la barre de navigation */
-body #header nav .nav-content .nav-live-badge {
+body #nav .nav-content .nav-live-badge {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1499,12 +1718,12 @@ body #header nav .nav-content .nav-live-badge {
   white-space: nowrap;
   transition: background 0.25s, border-color 0.25s, transform 0.25s;
 }
-body #header nav .nav-content .nav-live-badge:hover {
+body #nav .nav-content .nav-live-badge:hover {
   background: rgba(255, 60, 60, 0.32);
   border-color: #ff5a5a;
   transform: scale(1.04);
 }
-body #header nav .nav-content .nav-live-badge[hidden] {
+body #nav .nav-content .nav-live-badge[hidden] {
   display: none;
 }
 .nav-live-badge .live-map {
@@ -1610,7 +1829,7 @@ body #header nav .nav-content .nav-live-badge[hidden] {
 
 /* Mobile : badge nav réduit (point + EN DIRECT) */
 @media all and (max-width: 870px) {
-  body #header nav .nav-content .nav-live-badge .live-map {
+  body #nav .nav-content .nav-live-badge .live-map {
     display: none;
   }
 }
@@ -1745,9 +1964,31 @@ body #header nav .nav-content .nav-live-badge[hidden] {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+  justify-content: center;
+  gap: 10px;
 }
 .etf2l-map-total .etf2l-map-label b {
   color: #fff;
+}
+
+/* --- Badge résultat d'équipe (Vainqueur / Perdant / Égalité) --- */
+.team-result {
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #fff;
+  flex-shrink: 0;
+}
+.team-result.result-win {
+  background: #2f8f46;
+}
+.team-result.result-loss {
+  background: #a33b3b;
+}
+.team-result.result-draw {
+  background: #666;
 }
 .etf2l-roster-panel .etf2l-roster-head {
   margin-bottom: 14px;
