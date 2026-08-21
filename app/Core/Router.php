@@ -62,12 +62,14 @@ final class Router
     }
 
     /**
-     * Les endpoints webhooks serveurs utilisent un token partagé et non la
-     * session utilisateur : ils sont exemptés de la vérification CSRF.
+     * Les endpoints webhooks serveurs et bot Discord utilisent un token
+     * partagé et non la session utilisateur : ils sont exemptés de la
+     * vérification CSRF.
      */
     private function isWebhook(string $path): bool
     {
-        return str_starts_with($path, '/api/server/');
+        return str_starts_with($path, '/api/server/')
+            || str_starts_with($path, '/api/discord/');
     }
 
     /**
