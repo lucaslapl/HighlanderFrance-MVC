@@ -32,6 +32,8 @@ final class ApiController extends Controller
     /**
      * Statistiques globales de la page d'accueil.
      * Pendant la migration, on lit le cache généré par les crons de l'ancien site.
+     * Le compteur de membres Discord (cache_discord_stats.json) est fusionné
+     * s'il existe ; sinon la clé members est absente et la vue garde son fallback.
      */
     public function indexStats(): void
     {
@@ -40,6 +42,19 @@ final class ApiController extends Controller
         $stats = null;
         if (is_file($cacheFile)) {
             $stats = json_decode((string)file_get_contents($cacheFile), true);
+        }
+
+        if (!is_array($stats)) {
+            $stats = [];
+        }
+
+        $discordCacheFile = DATA_DIR . '/cache_discord_stats.json';
+        if (is_file($discordCacheFile)) {
+            $discord = json_decode((string)file_get_contents($discordCacheFile), true);
+
+            if (is_array($discord) && isset($discord['members']) && is_numeric($discord['members'])) {
+                $stats['members'] = (int)$discord['members'];
+            }
         }
 
         $this->json(['data' => $stats]);

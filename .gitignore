@@ -3,3 +3,5 @@ _cache/
 _sessions/
 _scripts/*
 !_scripts/.htaccess
+bot/node_modules/
+bot/.env

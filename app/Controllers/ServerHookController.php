@@ -68,6 +68,85 @@ final class ServerHookController extends Controller
     }
 
     /**
+     * POST /api/discord/member-count
+     * Body (JSON) : { token, member_count, guild_id? }
+     *
+     * Appelé par le bot Discord (octave.highlanderfrance.tf) à chaque
+     * arrivée/départ de membre et en sync périodique. Écrit le dernier
+     * compteur connu dans le cache consommé par /api/index-stats.
+     */
+    public function discordMemberCount(): void
+    {
+        if (!$this->discordAuthenticate()) {
+            AdminLogger::log('webhook_discord_member_count', null, 'FAILED (token invalide)');
+            $this->json(['success' => false, 'message' => 'Non autorisé.'], 403);
+
+            return;
+        }
+
+        $count = $this->payload('member_count');
+
+        if (!is_numeric($count)) {
+            $this->json(['success' => false, 'message' => 'member_count invalide.'], 400);
+
+            return;
+        }
+
+        $count = (int)$count;
+
+        if ($count <= 0 || $count > 10000000) {
+            $this->json(['success' => false, 'message' => 'member_count hors limites.'], 400);
+
+            return;
+        }
+
+        // Vérification optionnelle du serveur concerné (DISCORD_GUILD_ID).
+        $expectedGuild = (string)env('DISCORD_GUILD_ID', '');
+        if ($expectedGuild !== '') {
+            $guildId = (string)($this->payload('guild_id') ?? '');
+
+            if ($guildId !== '' && !hash_equals($expectedGuild, $guildId)) {
+                AdminLogger::log('webhook_discord_member_count', null, 'FAILED (guild_id inattendu - ' . $guildId . ')');
+                $this->json(['success' => false, 'message' => 'Guild non autorisée.'], 403);
+
+                return;
+            }
+        }
+
+        $cache = [
+            'members' => $count,
+            'updated_at' => time(),
+        ];
+
+        if (file_put_contents(DATA_DIR . '/cache_discord_stats.json', json_encode($cache), LOCK_EX) === false) {
+            AdminLogger::log('webhook_discord_member_count', null, 'FAILED (écriture cache impossible)');
+            $this->json(['success' => false, 'message' => 'Écriture du cache impossible.'], 500);
+
+            return;
+        }
+
+        AdminLogger::log('webhook_discord_member_count', null, 'SUCCESS (' . $count . ' membres)');
+
+        $this->json(['success' => true, 'message' => 'Compteur mis à jour.', 'members' => $count]);
+    }
+
+    /**
+     * Valide le token partagé du bot Discord (comparaison à temps constant).
+     */
+    private function discordAuthenticate(): bool
+    {
+        $expected = (string)env('DISCORD_WEBHOOK_TOKEN', '');
+
+        if ($expected === '') {
+            return false;
+        }
+
+        $token = (string)($this->payload('token') ?? '');
+
+        return hash_equals($expected, $token);
+    }
+
+    /**
      * POST /api/server/match-ended
      * Body (JSON) : { token, server, map }
      */
