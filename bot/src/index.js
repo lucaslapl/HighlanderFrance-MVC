@@ -2,6 +2,7 @@ import http from 'node:http';
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { createRequestHandler } from './web/server.js';
 
 /**
  * Bootstrap « incassable » : le serveur HTTP démarre avec les seuls modules
@@ -14,7 +15,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const boot = {
     stage: 'http',
     errors: [],
+};
+
+// Dépendances remplies progressivement par main() ; le routeur web tolère
+// qu'elles soient absentes pendant le démarrage.
+const deps = {
+    boot,
+    config: null,
     client: null,
+    pushMemberCount: null,
+    readSyncHealth: null,
 };
 
 function fail(stage, error) {
@@ -30,22 +40,7 @@ let readSyncHealth = null;
 
 const port = Number.parseInt(process.env.PORT ?? '', 10) || 3000;
 
-const server = http.createServer((req, res) => {
-    const healthy = boot.errors.length === 0;
-
-    const payload = {
-        status: healthy ? 'ok' : 'degraded',
-        stage: boot.stage,
-        ...(healthy ? {} : { errors: boot.errors }),
-        discord: !boot.client
-            ? 'absent'
-            : (boot.client.isReady() ? 'connected' : 'connecting'),
-        ...(readSyncHealth ? readSyncHealth() : {}),
-    };
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(payload));
-});
+const server = http.createServer(createRequestHandler(deps));
 
 server.listen(port, () => {
     console.log(`[bot] Serveur HTTP keep-alive en écoute sur le port ${port}`);
@@ -76,6 +71,8 @@ async function main() {
     try {
         boot.stage = 'config';
         ({ config, configErrors } = await import('./config.js'));
+
+        deps.config = config;
     } catch (error) {
         return fail('config', error);
     }
@@ -111,11 +108,14 @@ async function main() {
         ],
     });
 
-    boot.client = client;
+    deps.client = client;
 
     try {
         boot.stage = 'siteSync';
-        ({ healthState: readSyncHealth } = await import('./services/siteSync.js'));
+        ({ healthState: readSyncHealth, pushMemberCount: deps.pushMemberCount } =
+            await import('./services/siteSync.js'));
+
+        deps.readSyncHealth = readSyncHealth;
     } catch (error) {
         return fail('siteSync', error);
     }

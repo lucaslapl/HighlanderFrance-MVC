@@ -16,6 +16,16 @@ export const config = {
     port: intOr('PORT', 3000),
     syncIntervalMinutes: intOr('SYNC_INTERVAL_MINUTES', 360),
     minPushIntervalMs: intOr('MIN_PUSH_INTERVAL_SECONDS', 60) * 1000,
+
+    // Page d'administration (OAuth2 Discord). Absentes = panel désactivé
+    // (le bot continue de fonctionner, seule la page web est indisponible).
+    oauthClientId: process.env.DISCORD_OAUTH_CLIENT_ID ?? '',
+    oauthClientSecret: process.env.DISCORD_OAUTH_CLIENT_SECRET ?? '',
+    oauthRedirectUri: process.env.OAUTH_REDIRECT_URI ?? '',
+    adminRoleIds: (process.env.DISCORD_ADMIN_ROLE_IDS ?? '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean),
 };
 
 /**

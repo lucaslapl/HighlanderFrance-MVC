@@ -8,18 +8,49 @@ sync de sécurité au démarrage et toutes les 6 h.
 
 ```
 src/
-├── index.js              # Point d'entrée : serveur HTTP keep-alive + events + login
+├── index.js              # Point d'entrée : bootstrap incassable + events + login
 ├── config.js             # Lecture/validation des variables d'environnement
 ├── events/               # Un fichier = un event (chargement automatique)
 │   ├── ready.js          # Sync initiale + sync périodique
 │   ├── guildMemberAdd.js
 │   └── guildMemberRemove.js
-└── services/
-    └── siteSync.js       # Push vers le site + debounce anti-raid + état /health
+├── services/
+│   └── siteSync.js       # Push vers le site + debounce anti-raid + état /health
+└── web/
+    ├── server.js         # Routeur HTTP (/, /login, /callback, /admin/sync, /health)
+    ├── auth.js           # OAuth2 Discord, sessions, vérification des rôles
+    └── views.js          # Templates HTML de la page d'administration
+tools/
+└── check.js              # Diagnostic : npm run check (ou bouton Run script Plesk)
 ```
 
 Ajouter une feature = ajouter un fichier dans `events/` (ou un dossier
 `commands/` le moment venu) — rien d'autre à modifier.
+
+## Page d'administration
+
+Le bot sert sa propre page d'admin sur https://octave.highlanderfrance.tf/ :
+monitoring (statut, compteur, dernier push) + bouton « Forcer une
+synchronisation ». Accès réservé aux administrateurs du serveur Discord via
+OAuth2 : l'utilisateur doit porter un des rôles listés dans
+`DISCORD_ADMIN_ROLE_IDS`, ou être propriétaire de la guilde si la liste est
+vide. La vérification se fait côté serveur via l'API Discord avec le token du
+bot — elle ne peut pas être falsifiée depuis le navigateur.
+
+Configuration :
+
+1. Portail Discord → **OAuth2** → copier **Client ID** et **Client Secret**
+2. Ajouter le **Redirect URI** : `https://octave.highlanderfrance.tf/callback`
+3. Variables d'environnement (Plesk ou `.env`) :
+   - `DISCORD_OAUTH_CLIENT_ID`
+   - `DISCORD_OAUTH_CLIENT_SECRET`
+   - `OAUTH_REDIRECT_URI=https://octave.highlanderfrance.tf/callback`
+   - `DISCORD_ADMIN_ROLE_IDS=123...,456...` (clic droit sur un rôle → Copier
+     l'identifiant ; vide = propriétaire uniquement)
+
+Notes : les sessions sont en mémoire (un redémarrage du bot déconnecte les
+admins) ; `/health` reste public ; les variables OAuth peuvent être ajoutées à
+chaud, sans toucher au reste.
 
 ## 1. Création sur le portail Discord
 
