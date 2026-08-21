@@ -18,6 +18,11 @@ final class Database
             self::$pdo = new \PDO('sqlite:' . DB_PATH);
             self::$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
+            // WAL : les lectures du site ne sont plus bloquées par les écritures
+            // des scripts CRON (sync_etf2l, update_stats...) qui durent plusieurs minutes.
+            self::$pdo->exec('PRAGMA journal_mode=WAL');
+            self::$pdo->exec('PRAGMA busy_timeout=5000');
+
             self::migrate();
         }
 
@@ -73,6 +78,14 @@ final class Database
         if (!in_array('map_results', $existing, true)) {
             $db->exec('ALTER TABLE etf2l_matches ADD COLUMN map_results TEXT DEFAULT NULL');
         }
+
+        // Cache des réponses API ETF2L (sync_etf2l.php) : évite de re-interroger
+        // l'API à chaque exécution du script.
+        $db->exec("CREATE TABLE IF NOT EXISTS etf2l_api_cache (
+            url        TEXT PRIMARY KEY,
+            payload    TEXT NOT NULL,
+            fetched_at INTEGER NOT NULL
+        )");
 
         // Table de blacklist des logs logs.tf
         $db->exec("CREATE TABLE IF NOT EXISTS log_blacklist (

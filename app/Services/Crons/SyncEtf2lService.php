@@ -24,8 +24,14 @@ final class SyncEtf2lService
         37618,
     ];
 
-    /** Délai entre deux appels API (rate-limit ETF2L : 60 req/min). */
-    private const API_CALL_DELAY_US = 1100000;
+    /** Délai minimal entre deux appels HTTP réels (rate-limit ETF2L : 60 req/min). */
+    private const API_CALL_DELAY_S = 1.1;
+
+    /** Durée de vie (s) du cache des listes de matchs (données évolutives). */
+    private const CACHE_TTL_MATCHES = 600;
+
+    /** Durée de vie (s) du cache des fiches équipes/rosters (peu volatiles). */
+    private const CACHE_TTL_TEAMS = 7 * 86400;
 
     /** Nombre maximal d'appels /matches/{id} par exécution (backfill progressif). */
     private const ENRICH_MAX_PER_RUN = 45;
@@ -34,16 +40,50 @@ final class SyncEtf2lService
     {
     }
 
+    /** Timestamp (microtime) du dernier appel HTTP réel, pour le rate-limit. */
+    private float $lastHttpAt = 0;
+
+    /**
+     * Appel API avec cache persistant en base : si la réponse est encore fraîche,
+     * aucune requête HTTP n'est émise (exécutions rapprochées quasi instantanées,
+     * et rosters re-téléchargés au maximum une fois par semaine).
+     */
+    private function cachedGet(string $url, int $ttl): array
+    {
+        $cacheStmt = $this->db->prepare('SELECT payload FROM etf2l_api_cache WHERE url = ? AND fetched_at > ?');
+        $cacheStmt->execute([$url, time() - $ttl]);
+        $payload = $cacheStmt->fetchColumn();
+
+        if (is_string($payload) && $payload !== '') {
+            $decoded = json_decode($payload, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        // Rate-limit uniquement sur les vrais appels HTTP (un cache hit ne compte pas).
+        $elapsed = microtime(true) - $this->lastHttpAt;
+        if ($this->lastHttpAt > 0 && $elapsed < self::API_CALL_DELAY_S) {
+            usleep((int)((self::API_CALL_DELAY_S - $elapsed) * 1e6));
+        }
+        $this->lastHttpAt = microtime(true);
+
+        $responseObj = $this->fetchWithRetry($url);
+
+        $this->db
+            ->prepare('INSERT INTO etf2l_api_cache (url, payload, fetched_at) VALUES (?, ?, ?)
+                       ON CONFLICT(url) DO UPDATE SET payload = excluded.payload, fetched_at = excluded.fetched_at')
+            ->execute([$url, json_encode($responseObj, JSON_THROW_ON_ERROR), time()]);
+
+        return $responseObj;
+    }
+
     private function fetchAllPages(string $baseUrl): array
     {
         $matches = [];
 
         for ($page = 1; ; $page++) {
-            if ($page > 1) {
-                usleep(self::API_CALL_DELAY_US);
-            }
-
-            $responseObj = $this->fetchWithRetry($baseUrl . '&page=' . $page);
+            $responseObj = $this->cachedGet($baseUrl . '&page=' . $page, self::CACHE_TTL_MATCHES);
 
             $results = $responseObj['results'] ?? [];
             $pageMatches = $results['data'] ?? [];
@@ -100,9 +140,16 @@ final class SyncEtf2lService
     {
         $logToken = AdminLogger::log(self::SCRIPT_NAME);
 
+        // Purge des entrées de cache devenues inutiles (TTL maximal dépassé).
+        $this->db->prepare('DELETE FROM etf2l_api_cache WHERE fetched_at < ?')
+            ->execute([time() - self::CACHE_TTL_TEAMS]);
+
         // Historique durable : on cumule matchs à venir + matchs passés récents,
         // et on upsert au lieu de tout effacer (les URLs /match/{id} restent valides).
+        // Le `from` est arrondi au jour : l'URL reste stable sur 24 h, sinon le
+        // cache ne serait jamais utilisé pour les pages d'historique.
         $from = time() - self::HISTORY_WINDOW_DAYS * 86400;
+        $from -= $from % 86400;
         $matches = array_merge(
             $this->fetchAllPages(self::API_URL),
             $this->fetchAllPages('https://api-v2.etf2l.org/matches?scheduled=0&from=' . $from)
@@ -130,57 +177,68 @@ final class SyncEtf2lService
         $matchTeamIds = [];
         $frenchMatches = []; // match_id => ['time' => int, 'submitted' => ?int]
 
-        foreach ($matches as $m) {
-            $t1 = $m['clan1'] ?? null;
-            $t2 = $m['clan2'] ?? null;
+        // Une seule transaction pour tous les upserts : un seul verrou d'écriture
+        // au lieu d'un par ligne (le site reste fluide pendant la synchro).
+        $this->db->beginTransaction();
 
-            if (!$t1 || !$t2) {
-                continue;
+        try {
+            foreach ($matches as $m) {
+                $t1 = $m['clan1'] ?? null;
+                $t2 = $m['clan2'] ?? null;
+
+                if (!$t1 || !$t2) {
+                    continue;
+                }
+
+                $t1Id = (int)($t1['id'] ?? 0);
+                $t2Id = (int)($t2['id'] ?? 0);
+
+                $isFr1 = (isset($t1['country']) && strtolower((string)$t1['country']) === 'france');
+                $isFr2 = (isset($t2['country']) && strtolower((string)$t2['country']) === 'france');
+                $isWhitelisted1 = in_array($t1Id, self::WHITELISTED_TEAMS, true);
+                $isWhitelisted2 = in_array($t2Id, self::WHITELISTED_TEAMS, true);
+
+                if (!$isFr1 && !$isFr2 && !$isWhitelisted1 && !$isWhitelisted2) {
+                    continue;
+                }
+
+                $stmt->execute([
+                    $m['id'] ?? null,
+                    $t1['name'] ?? 'TBD',
+                    $t2['name'] ?? 'TBD',
+                    (int)($m['time'] ?? time()),
+                    $m['competition']['name'] ?? 'Compétition ETF2L',
+                    isset($t1['country']) ? strtolower((string)$t1['country']) : 'unknown',
+                    isset($t2['country']) ? strtolower((string)$t2['country']) : 'unknown',
+                    $t1Id,
+                    $t2Id,
+                    isset($m['maps']) ? json_encode(array_values((array)$m['maps']), JSON_THROW_ON_ERROR) : null,
+                    isset($m['r1']) ? (int)$m['r1'] : null,
+                    isset($m['r2']) ? (int)$m['r2'] : null,
+                    isset($m['map_results']) ? json_encode($m['map_results'], JSON_THROW_ON_ERROR) : null,
+                ]);
+
+                if (isset($m['id'])) {
+                    $frenchMatches[(int)$m['id']] = [
+                        'time' => (int)($m['time'] ?? 0),
+                        'submitted' => isset($m['submitted']) ? (int)$m['submitted'] : null,
+                    ];
+                }
+
+                if ($t1Id > 0) {
+                    $matchTeamIds[$t1Id] = true;
+                }
+                if ($t2Id > 0) {
+                    $matchTeamIds[$t2Id] = true;
+                }
+
+                $upsertedCount++;
             }
 
-            $t1Id = (int)($t1['id'] ?? 0);
-            $t2Id = (int)($t2['id'] ?? 0);
-
-            $isFr1 = (isset($t1['country']) && strtolower((string)$t1['country']) === 'france');
-            $isFr2 = (isset($t2['country']) && strtolower((string)$t2['country']) === 'france');
-            $isWhitelisted1 = in_array($t1Id, self::WHITELISTED_TEAMS, true);
-            $isWhitelisted2 = in_array($t2Id, self::WHITELISTED_TEAMS, true);
-
-            if (!$isFr1 && !$isFr2 && !$isWhitelisted1 && !$isWhitelisted2) {
-                continue;
-            }
-
-            $stmt->execute([
-                $m['id'] ?? null,
-                $t1['name'] ?? 'TBD',
-                $t2['name'] ?? 'TBD',
-                (int)($m['time'] ?? time()),
-                $m['competition']['name'] ?? 'Compétition ETF2L',
-                isset($t1['country']) ? strtolower((string)$t1['country']) : 'unknown',
-                isset($t2['country']) ? strtolower((string)$t2['country']) : 'unknown',
-                $t1Id,
-                $t2Id,
-                isset($m['maps']) ? json_encode(array_values((array)$m['maps']), JSON_THROW_ON_ERROR) : null,
-                isset($m['r1']) ? (int)$m['r1'] : null,
-                isset($m['r2']) ? (int)$m['r2'] : null,
-                isset($m['map_results']) ? json_encode($m['map_results'], JSON_THROW_ON_ERROR) : null,
-            ]);
-
-            if (isset($m['id'])) {
-                $frenchMatches[(int)$m['id']] = [
-                    'time' => (int)($m['time'] ?? 0),
-                    'submitted' => isset($m['submitted']) ? (int)$m['submitted'] : null,
-                ];
-            }
-
-            if ($t1Id > 0) {
-                $matchTeamIds[$t1Id] = true;
-            }
-            if ($t2Id > 0) {
-                $matchTeamIds[$t2Id] = true;
-            }
-
-            $upsertedCount++;
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
         }
 
         $enriched = 0;
@@ -243,14 +301,10 @@ final class SyncEtf2lService
         $enriched = 0;
 
         foreach ($matchIds as $matchId) {
-            usleep(self::API_CALL_DELAY_US);
-
             try {
-                $responseObj = JsonClient::get(
+                $responseObj = $this->cachedGet(
                     'https://api-v2.etf2l.org/matches/' . (int)$matchId,
-                    10,
-                    'Highlander France Bot/1.0',
-                    ['Accept: application/json']
+                    self::CACHE_TTL_MATCHES
                 );
 
                 if ($responseObj === null) {
@@ -260,10 +314,6 @@ final class SyncEtf2lService
                 $code = isset($responseObj['status']['code']) ? (int)$responseObj['status']['code'] : null;
 
                 if ($code !== 200) {
-                    // Payload throttlé (429 sans clé status) : pause puis reprise au suivant.
-                    if ($code === null || $code === 429) {
-                        sleep(5);
-                    }
                     continue;
                 }
 
@@ -321,13 +371,9 @@ final class SyncEtf2lService
         ');
 
         foreach ($teamIds as $teamId) {
-            usleep(self::API_CALL_DELAY_US);
-
-            $responseObj = JsonClient::get(
+            $responseObj = $this->cachedGet(
                 'https://api-v2.etf2l.org/team/' . (int)$teamId,
-                10,
-                'Highlander France Bot/1.0',
-                ['Accept: application/json']
+                self::CACHE_TTL_TEAMS
             );
 
             if ($responseObj === null) {
@@ -343,23 +389,34 @@ final class SyncEtf2lService
                 continue;
             }
 
-            $teamStmt->execute([
-                (int)$teamId,
-                $team['name'] ?? 'TBD',
-                isset($team['country']) ? strtolower((string)$team['country']) : 'unknown',
-                $team['tag'] ?? null,
-            ]);
-
             $players = $team['players'] ?? [];
-            foreach ($players as $p) {
-                $playerStmt->execute([
+
+            // Équipe + joueurs en une transaction : écriture atomique et brève.
+            $this->db->beginTransaction();
+
+            try {
+                $teamStmt->execute([
                     (int)$teamId,
-                    (int)($p['id'] ?? 0),
-                    $p['name'] ?? 'Joueur ETF2L',
-                    $p['role'] ?? 'Member',
-                    isset($p['country']) ? strtolower((string)$p['country']) : 'unknown',
-                    isset($p['steam']['id64']) ? (string)$p['steam']['id64'] : null,
+                    $team['name'] ?? 'TBD',
+                    isset($team['country']) ? strtolower((string)$team['country']) : 'unknown',
+                    $team['tag'] ?? null,
                 ]);
+
+                foreach ($players as $p) {
+                    $playerStmt->execute([
+                        (int)$teamId,
+                        (int)($p['id'] ?? 0),
+                        $p['name'] ?? 'Joueur ETF2L',
+                        $p['role'] ?? 'Member',
+                        isset($p['country']) ? strtolower((string)$p['country']) : 'unknown',
+                        isset($p['steam']['id64']) ? (string)$p['steam']['id64'] : null,
+                    ]);
+                }
+
+                $this->db->commit();
+            } catch (\Throwable $e) {
+                $this->db->rollBack();
+                throw $e;
             }
         }
     }
